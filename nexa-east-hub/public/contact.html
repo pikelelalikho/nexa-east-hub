@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us - NEXA East Hub</title>
+  <link rel="stylesheet" href="stylesforms.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      margin: 0;
+      padding: 0;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem 2rem 0 2rem;
+    }
+
+    .top-bar button {
+      background: white;
+      color: #2563eb;
+      border: 2px solid #2563eb;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .top-bar button:hover {
+      background: #2563eb;
+      color: white;
+    }
+
+    .contact {
+      max-width: 600px;
+      margin: 2rem auto 4rem;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .contact h2 {
+      color: #2563eb;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .contact-form input,
+    .contact-form textarea,
+    .contact-form select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .contact-form button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .contact-form button:hover:not(:disabled) {
+      background: #1e3a8a;
+    }
+
+    .contact-form button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.3rem;
+      color: #2563eb;
+    }
+    a.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #1d4ed8;
+  color: white;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.btn:hover {
+  background: #2563eb;
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
+  </div>
+
+  <div class="contact">
+    <h2>Contact Us</h2>
+    <form class="contact-form" id="contactForm" novalidate>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" placeholder="Your Name" required />
+    
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="Email Address" required />
+    
+      <label for="phone">Phone Number (optional)</label>
+      <input type="tel" id="phone" name="phone" placeholder="Phone Number (optional)" />
+    
+      <label for="service">Service</label>
+      <select name="service" id="service" required>
+        <option value="" disabled selected>Select a service</option>
+        <option value="General Inquiry">General Inquiry</option>
+        <option value="Design Service">Design Service</option>
+        <option value="Music Production">Music Production</option>
+        <option value="AI Tools">AI Tools</option>
+      </select>
+    
+      <label for="message">Message</label>
+      <textarea id="message" name="message" placeholder="Your Message" rows="5" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
+  <script src="script.js" defer></script>
+  <script>
+  document.querySelector('.top-bar button')?.addEventListener('click', () => {
+    window.location.href = 'user-dashboard.html';
+  });
+</script>
+</body>
+</html>

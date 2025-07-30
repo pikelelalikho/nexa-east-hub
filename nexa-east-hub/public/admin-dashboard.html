@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - NEXA East Hub</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  
+  <style>
+    /* =================================================================
+       ADMIN DASHBOARD VARIABLES & RESET
+       ================================================================= */
+    
+    :root {
+      --primary-color: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --secondary-color: #f97316;
+      --accent-color: #06b6d4;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+      --info-color: #3b82f6;
+      
+      /* Light Mode */
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+      --gradient-secondary: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+      --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+      --gradient-error: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    }
+
+    /* Dark Mode Variables */
+    .dark {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --border-color: #334155;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: 100vh;
+    }
+
+    /* =================================================================
+       ADMIN DASHBOARD LAYOUT
+       ================================================================= */
+
+    .admin-dashboard {
+      min-height: 100vh;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+    }
+
+    /* =================================================================
+       DASHBOARD HEADER
+       ================================================================= */
+
+    .dashboard-header {
+      background: var(--bg-secondary);
+      border-radius: 20px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dashboard-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--gradient-primary);
+    }
+
+    .dashboard-header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .dashboard-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .dashboard-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .dashboard-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .admin-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .admin-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    /* =================================================================
+       CONNECTION STATUS
+       ================================================================= */
+
+    .connection-status {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 1000;
+      padding: 0.75rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(-100px);
+      opacity: 0;
+    }
+
+    .connection-status.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .connection-status.connected {
+      background: rgba(16, 185, 129, 0.9);
+      color: white;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .connection-status.disconnected {
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .connection-status.connecting {
+      background: rgba(245, 158, 11, 0.9);
+      color: white;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* =================================================================
+       STATS CARDS
+       ================================================================= */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-primary);
+    }
+
+    .stat-card.success::before {
+      background: var(--gradient-success);
+    }
+
+    .stat-card.warning::before {
+      background: var(--gradient-warning);
+    }
+
+    .stat-card.error::before {
+      background: var(--gradient-error);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-tertiary);
+      color: var(--primary-color);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .stat-card.success .stat-icon {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+    }
+
+    .stat-card.warning .stat-icon {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning-color);
+    }
+
+    .stat-card.error .stat-icon {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error-color);
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+
+    .stat-change {
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .stat-change.positive {
+      color: var(--success-color);
+    }
+
+    .stat-change.negative {
+      color: var(--error-color);
+    }
+
+    /* =================================================================
+       CONTROL PANEL
+       ================================================================= */
+
+    .control-panel {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .control-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .control-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* =================================================================
+       BUTTONS
+       ================================================================= */
+
+    .admin-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .admin-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .admin-btn:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    .admin-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .admin-btn-primary {
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .admin-btn-success {
+      background: var(--gradient-success);
+      color: white;
+    }
+
+    .admin-btn-warning {
+      background: var(--gradient-warning);
+      color: white;
+    }
+
+    .admin-btn-danger {
+      background: var(--gradient-error);
+      color: white;
+    }
+
+    .admin-btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    /* =================================================================
+       FORM CONTROLS
+       ================================================================= */
+
+    .admin-form-group {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .admin-input,
+    .admin-select {
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 200px;
+    }
+
+    .admin-input:focus,
+    .admin-select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background: var(--bg-secondary);
+    }
+
+    .admin-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* =================================================================
+       CHART CONTAINER
+       ================================================================= */
+
+    .chart-container {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .chart-header {
+      margin-bottom: 2rem;
+    }
+
+    .chart-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .chart-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    /* =================================================================
+       DATA TABLE
+       ================================================================= */
+
+    .admin-table-container {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 2rem;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-table thead {
+      background: var(--bg-tertiary);
+    }
+
+    .admin-table th {
+      padding: 1.25rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .admin-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .admin-table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+
+    .admin-table tbody tr:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .admin-table tbody tr:nth-child(even) {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .dark .admin-table tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* =================================================================
+       STATUS BADGES
+       ================================================================= */
+
+    .status-badge {
+      padding: 0.375rem 0.875rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .status-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning-color);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error-color);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-info {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--info-color);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    /* =================================================================
+       PAGINATION
+       ================================================================= */
+
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pagination-info {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .pagination-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+      transform: translateY(-1px);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* =================================================================
+       DARK MODE TOGGLE
+       ================================================================= */
+
+    .dark-mode-toggle {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dark-mode-toggle:hover {
+      transform: scale(1.1) rotate(180deg);
+      box-shadow: var(--shadow-xl);
+    }
+
+    /* =================================================================
+       ANIMATIONS & TRANSITIONS
+       ================================================================= */
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .slide-in-right {
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* =================================================================
+       RESPONSIVE DESIGN
+       ================================================================= */
+
+    @media (max-width: 1024px) {
+      .dashboard-container {
+        padding: 1.5rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      .control-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .dashboard-title {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 1rem;
+      }
+
+      .dashboard-header {
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .dashboard-header-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .dashboard-title {
+        font-size: 1.75rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .control-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .control-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .admin-btn {
+        justify-content: center;
+      }
+
+      .admin-table-container {
+        overflow-x: auto;
+      }
+
+      .admin-table {
+        min-width: 600px;
+      }
+
+      .pagination {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .dark-mode-toggle {
+        bottom: 1rem;
+        right: 1rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-header {
+        padding: 1rem;
+      }
+
+      .dashboard-title {
+        font-size: 1.5rem;
+      }
+
+      .stat-card {
+        padding: 1.5rem;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+      }
+
+      .control-panel {
+        padding: 1.5rem;
+      }
+
+      .admin-btn {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.8rem;
+      }
+
+      .chart-container {
+        padding: 1.5rem;
+      }
+    }
+
+    /* =================================================================
+       UTILITY CLASSES
+       ================================================================= */
+
+    .text-truncate {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .loading-spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* =================================================================
+       PRINT STYLES
+       ================================================================= */
+
+    @media print {
+      .admin-btn,
+      .control-panel,
+      .dark-mode-toggle,
+      .pagination,
+      button {
+        display: none !important;
+      }
+
+      .admin-table-container {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+      }
+
+      .admin-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+      }
+
+      .dashboard-title {
+        color: black !important;
+        -webkit-text-fill-color: black !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="admin-dashboard transition-colors duration-500">
+  <div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header fade-in-up">
+      <div class="dashboard-header-content">
+        <div>
+          <h1 class="dashboard-title">Admin Dashboard</h1>
+          <p class="dashboard-subtitle">NEXA East Hub - Monitor user activity and system performance</p>
+        </div>
+        <div class="dashboard-controls">
+          <div class="admin-info">
+            <div class="admin-avatar">A</div>
+            <span id="adminInfo">Administrator</span>
+          </div>
+          <button id="darkModeToggle" class="admin-btn admin-btn-secondary" type="button">
+            🌙
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status">
+      <span id="statusText">Connected</span>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid fade-in-up">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div>
+            <h3 class="stat-title">Total Logs</h3>
+          </div>
+          <div class="stat-icon">📊</div>
+        </div>
+        <p id="totalLogs" class="stat-value">0</p>
+        <div class="stat-change positive">+12% from last week</div>
+      </div>
+      
+      <div class="stat-card success">
+        <div class="stat-header">
+          <div>
+            <h3 class="stat-title">Successful Logins</h3>
+          </div>
+          <div class="stat-icon">✅</div>
+        </div>
+        <p id="successfulLogins" class="stat-value">0</p>
+        <div class="stat-change positive">+8% success rate</div>
+      </div>
+      
+      <div class="stat-card error">
+        <div class="stat-header">
+          <div>
+            <h3 class="stat-title">Failed Logins</h3>
+          </div>
+          <div class="stat-icon">❌</div>
+        </div>
+        <p id="failedLogins" class="stat-value">0</p>
+        <div class="stat-change negative">-5% from yesterday</div>
+      </div>
+      
+      <div class="stat-card warning">
+        <div class="stat-header">
+          <div>
+            <h3 class="stat-title">Contact Messages</h3>
+          </div>
+          <div class="stat-icon">💬</div>
+        </div>
+        <p id="contactMessages" class="stat-value">0</p>
+        <div class="stat-change positive">+3 new messages</div>
+      </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel fade-in-up">
+      <div class="control-header">
+        <h2 class="control-title">System Controls</h2>
+        <div class="control-actions">
+          <div class="admin-form-group">
+            <select id="filterType" class="admin-select" title="Filter log type">
+              <option value="all">All Events</option>
+              <option value="login_success">Login Success</option>
+              <option value="login_failed">Login Failed</option>
+              <option value="signup_success">Sign Up Success</option>
+              <option value="signup_failed">Sign Up Failed</option>
+              <option value="contact_message">Contact Message</option>
+              <option value="admin_reset">Admin Reset</option>
+              <option value="forgot_password_request">Password Reset Request</option>
+            </select>
+            <input id="searchInput" type="search" placeholder="Search logs..." class="admin-input" />
+          </div>
+          <button id="refreshBtn" type="button" class="admin-btn admin-btn-primary">
+            🔄 Refresh
+          </button>
+          <button id="exportCSVBtn" type="button" class="admin-btn admin-btn-success">
+            📊 Export CSV
+          </button>
+          <button id="exportXLSXBtn" type="button" class="admin-btn admin-btn-success">
+            📈 Export Excel
+          </button>
+          <button id="exportPDFBtn" type="button" class="admin-btn admin-btn-danger">
+            📄 Export PDF
+          </button>
+          <button id="deleteOldEventsBtn" type="button" class="admin-btn admin-btn-warning">
+            🗑️ Delete Old Events
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Chart -->
+    <div class="chart-container fade-in-up">
+      <div class="chart-header">
+        <h3 class="chart-title">Activity Overview</h3>
+        <p class="chart-subtitle">Real-time system activity and user engagement metrics</p>
+      </div>
+      <canvas id="activityChart" class="w-full h-64"></canvas>
+    </div>
+
+    <!-- Data Table -->
+    <div class="admin-table-container fade-in-up">
+      <table id="logTable" class="admin-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Event Type</th>
+            <th>Details</th>
+            <th>User</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="logTableBody">
+          <!-- Sample Data -->
+          <tr>
+            <td>2025-01-30 14:32:15</td>
+            <td>Login Success</td>
+            <td>User successfully authenticated</td>
+            <td>john.doe@example.com</td>
+            <td><span class="status-badge status-success">Success</span></td>
+          </tr>
+          <tr>
+            <td>2025-01-30 14:28:42</td>
+            <td>Login Failed</td>
+            <td>Invalid password attempt</td>
+            <td>admin@nexahub.com</td>
+            <td><span class="status-badge status-error">Failed</span></td>
+          </tr>
+          <tr>
+            <td>2025-01-30 14:25:18</td>
+            <td>Contact Message</td>
+            <td>New inquiry received</td>
+            <td>customer@email.com</td>
+            <td><span class="status-badge status-info">New</span></td>
+          </tr>
+          <tr>
+            <td>2025-01-30 14:20:33</td>
+            <td>Sign Up Success</td>
+            <td>New user registration completed</td>
+            <td>newuser@example.com</td>
+            <td><span class="status-badge status-success">Success</span></td>
+          </tr>
+          <tr>
+            <td>2025-01-30 14:15:07</td>
+            <td>Password Reset</td>
+            <td>Password reset request initiated</td>
+            <td>user@domain.com</td>
+            <td><span class="status-badge status-warning">Pending</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination fade-in-up">
+      <div class="pagination-info">
+        <span id="pageInfo">Showing 1-5 of 25 entries</span>
+      </div>
+      <div class="pagination-controls">
+        <button id="prevPageBtn" type="button" class="pagination-btn" disabled>
+          ← Previous
+        </button>
+        <button class="pagination-btn" style="background: var(--primary-color); color: white;">1</button>
+        <button class="pagination-btn">2</button>
+        <button class="pagination-btn">3</button>
+        <button id="nextPageBtn" type="button" class="pagination-btn">
+          Next →
+        </button>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="text-center mt-8">
+      <button id="logoutBtn" type="button" class="admin-btn admin-btn-danger">
+        🚪 Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Dark Mode Toggle (Fixed Position) -->
+  <button id="darkModeToggleFixed" class="dark-mode-toggle" type="button" title="Toggle Dark Mode">
+    🌙
+  </button>
+
+  <!-- JavaScript -->
+   <script src="script.js"></script>
+
+  <script>
+  
+  
+    // Socket.IO connection
+    const socket = io();
+    socket.on('new_log', (data) => {
+      console.log('📥 New log received:', data);
+    });
+
+    // DOM Elements
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeToggleFixed = document.getElementById('darkModeToggleFixed');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const statusText = document.getElementById('statusText');
+    const body = document.body;
+
+    // Sample data for demonstration
+    let currentPage = 1;
+    const itemsPerPage = 5;
+    let totalLogs = 142;
+    let successfulLogins = 128;
+    let failedLogins = 14;
+    let contactMessages = 23;
+
+    // Initialize dashboard
+    function initDashboard() {
+      updateStats();
+      initChart();
+      setupEventListeners();
+      checkDarkMode();
+      showConnectionStatus('connected');
+    }
+
+    // Update statistics
+    function updateStats() {
+      document.getElementById('totalLogs').textContent = totalLogs;
+      document.getElementById('successfulLogins').textContent = successfulLogins;
+      document.getElementById('failedLogins').textContent = failedLogins;
+      document.getElementById('contactMessages').textContent = contactMessages;
+    }
+
+    // Initialize activity chart
+    function initChart() {
+      const ctx = document.getElementById('activityChart').getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
+      gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+          datasets: [{
+            label: 'User Activity',
+            data: [12, 19, 8, 15, 22, 18, 25],
+            borderColor: '#2563eb',
+            backgroundColor: gradient,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#2563eb',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Dark mode toggles
+      [darkModeToggle, darkModeToggleFixed].forEach(btn => {
+        btn.addEventListener('click', toggleDarkMode);
+      });
+
+      // Filter and search
+      document.getElementById('filterType').addEventListener('change', filterLogs);
+      document.getElementById('searchInput').addEventListener('input', searchLogs);
+
+      // Export buttons
+      document.getElementById('exportCSVBtn').addEventListener('click', exportCSV);
+      document.getElementById('exportXLSXBtn').addEventListener('click', exportXLSX);
+      document.getElementById('exportPDFBtn').addEventListener('click', exportPDF);
+
+      // Action buttons
+      document.getElementById('refreshBtn').addEventListener('click', refreshData);
+      document.getElementById('deleteOldEventsBtn').addEventListener('click', deleteOldEvents);
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+
+      // Pagination
+      document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
+      document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
+    }
+
+    // Dark mode functionality
+    function toggleDarkMode() {
+      body.classList.toggle('dark');
+      const isDark = body.classList.contains('dark');
+      localStorage.setItem('darkMode', isDark);
+      
+      // Update toggle icons
+      const icon = isDark ? '☀️' : '🌙';
+      darkModeToggle.textContent = icon;
+      darkModeToggleFixed.textContent = icon;
+    }
+
+    function checkDarkMode() {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      if (isDark) {
+        body.classList.add('dark');
+        darkModeToggle.textContent = '☀️';
+        darkModeToggleFixed.textContent = '☀️';
+      }
+    }
+
+    // Connection status
+    function showConnectionStatus(status) {
+      connectionStatus.className = `connection-status ${status} show`;
+      
+      const statusMessages = {
+        connected: '✅ Connected',
+        disconnected: '❌ Disconnected',
+        connecting: '🔄 Connecting...'
+      };
+      
+      statusText.textContent = statusMessages[status] || status;
+      
+      setTimeout(() => {
+        connectionStatus.classList.remove('show');
+      }, 3000);
+    }
+
+    // Filter and search functions
+    function filterLogs() {
+      const filterType = document.getElementById('filterType').value;
+      console.log('Filtering by:', filterType);
+      // Implement filtering logic
+    }
+
+    function searchLogs() {
+      const searchTerm = document.getElementById('searchInput').value;
+      console.log('Searching for:', searchTerm);
+      // Implement search logic
+    }
+
+    // Export functions
+    function exportCSV() {
+      console.log('Exporting CSV...');
+      showNotification('CSV export started', 'success');
+    }
+
+    function exportXLSX() {
+      console.log('Exporting Excel...');
+      showNotification('Excel export started', 'success');
+    }
+
+    function exportPDF() {
+      console.log('Exporting PDF...');
+      showNotification('PDF export started', 'success');
+    }
+
+    // Action functions
+    function refreshData() {
+      console.log('Refreshing data...');
+      showNotification('Data refreshed successfully', 'success');
+      
+      // Simulate data update
+      totalLogs += Math.floor(Math.random() * 5);
+      successfulLogins += Math.floor(Math.random() * 3);
+      updateStats();
+    }
+
+    function deleteOldEvents() {
+      if (confirm('Are you sure you want to delete old events? This action cannot be undone.')) {
+        console.log('Deleting old events...');
+        showNotification('Old events deleted', 'warning');
+      }
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        console.log('Logging out...');
+        showNotification('Logging out...', 'info');
+        // Implement logout logic
+      }
+    }
+
+    // Pagination
+    function changePage(direction) {
+      const totalPages = Math.ceil(totalLogs / itemsPerPage);
+      currentPage += direction;
+      
+      if (currentPage < 1) currentPage = 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+      
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const totalPages = Math.ceil(totalLogs / itemsPerPage);
+      const startItem = (currentPage - 1) * itemsPerPage + 1;
+      const endItem = Math.min(currentPage * itemsPerPage, totalLogs);
+      
+      document.getElementById('pageInfo').textContent = 
+        `Showing ${startItem}-${endItem} of ${totalLogs} entries`;
+      
+      document.getElementById('prevPageBtn').disabled = currentPage === 1;
+      document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type} slide-in-right`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    // Socket.IO event listeners
+    socket.on('connect', () => {
+      showConnectionStatus('connected');
+    });
+
+    socket.on('disconnect', () => {
+      showConnectionStatus('disconnected');
+    });
+
+    socket.on('new_log', (data) => {
+      console.log('📥 New log received:', data);
+      totalLogs++;
+      updateStats();
+      showNotification('New activity detected', 'info');
+    });
+
+    // Initialize dashboard on page load
+    document.addEventListener('DOMContentLoaded', initDashboard);
+
+    // Add fade-in animation to elements
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+
+    // Observe all fade-in-up elements
+    document.querySelectorAll('.fade-in-up').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(el);
+    });
+  </script>
+
+  <noscript>
+    <div style="color: red; text-align: center; margin: 20px; padding: 20px; background: #fee; border: 1px solid #fcc; border-radius: 8px;">
+      JavaScript is required for the Admin Dashboard to function properly. Please enable JavaScript in your browser.
+    </div>
+  </noscript>
+</body>
+</html>
