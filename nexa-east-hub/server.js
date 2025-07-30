@@ -40,6 +40,11 @@ const io = new Server(server, {
 
 // Here you attach your router
 app.use('/login', apiRoutes);
+app.use(express.json());
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
 
 // ---------- JWT Secret ----------
 const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
