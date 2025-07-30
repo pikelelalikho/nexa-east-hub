@@ -1,5 +1,3 @@
-
-
 // ---------- Dependencies ----------
 import express from 'express';
 import fs from 'fs';
@@ -27,17 +25,22 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-
 const PORT = process.env.PORT || 3000;
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-    app.use(cors({
-      origin: ['http://localhost:5500', 'https://nexa-east-hub.onrender.com'], // include both dev and prod URLs
-      credentials: true
-    }));
 
-// Here you attach your router
+// Apply CORS middleware here, BEFORE creating HTTP server
+app.use(cors({
+  origin: ['http://localhost:5500', 'https://nexa-east-hub.onrender.com'],
+  credentials: true
+}));
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  // Add any socket.io options here if needed
+});
+
+// Here you attach your router and middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -51,79 +54,77 @@ app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-
-
 // ---------- JWT Secret ----------
 const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
 
 // ---------- Email Transporter ----------
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
 // ---------- Global Error Handlers ----------
 process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-    process.exit(1);
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
 
 // ---------- Rate Limiters (Define before middleware) ----------
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10,
-    message: { success: false, error: 'Too many login attempts, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { success: false, error: 'Too many login attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const signupLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5,
-    message: { success: false, error: 'Too many signup attempts, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { success: false, error: 'Too many signup attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const contactLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 3,
-    message: { success: false, error: 'Too many contact form submissions, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3,
+  message: { success: false, error: 'Too many contact form submissions, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const forgotPasswordLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 6,
-    message: { success: false, error: 'Too many password reset attempts, please try again later.' }
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 6,
+  message: { success: false, error: 'Too many password reset attempts, please try again later.' }
 });
 
 // ---------- Middleware ----------
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') : true,
-    credentials: true
+  origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') : true,
+  credentials: true
 }));
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "ws:", "wss:"]
-        }
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "ws:", "wss:"]
     }
+  }
 }));
 
 // Serve static files
@@ -140,155 +141,155 @@ app.use('/api/reset-password', forgotPasswordLimiter);
 
 // ---------- Utility Functions ----------
 function readUsers() {
-    const filePath = path.join(__dirname, 'users.json');
-    if (!fs.existsSync(filePath)) return [];
-    try {
-        const data = fs.readFileSync(filePath, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Error reading users.json:', error);
-        return [];
-    }
+  const filePath = path.join(__dirname, 'users.json');
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading users.json:', error);
+    return [];
+  }
 }
 
 function saveUsers(users) {
-    const filePath = path.join(__dirname, 'users.json');
-    try {
-        fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
-        return true;
-    } catch (error) {
-        console.error('Error saving users:', error);
-        return false;
-    }
+  const filePath = path.join(__dirname, 'users.json');
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error saving users:', error);
+    return false;
+  }
 }
 
 function saveLog(entry) {
-    const filePath = path.join(__dirname, 'logs.json');
-    let logs = [];
-    
-    if (fs.existsSync(filePath)) {
-        try {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            logs = JSON.parse(data);
-        } catch (error) {
-            console.error('Error reading logs.json:', error);
-        }
-    }
-    
-    const logEntry = {
-        ...entry,
-        timestamp: entry.timestamp || Date.now(),
-        id: Date.now() + Math.random()
-    };
-    
-    logs.push(logEntry);
-    
+  const filePath = path.join(__dirname, 'logs.json');
+  let logs = [];
+
+  if (fs.existsSync(filePath)) {
     try {
-        fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
-        io.emit('new_log', logEntry);
+      const data = fs.readFileSync(filePath, 'utf-8');
+      logs = JSON.parse(data);
     } catch (error) {
-        console.error('Error writing logs.json:', error);
+      console.error('Error reading logs.json:', error);
     }
+  }
+
+  const logEntry = {
+    ...entry,
+    timestamp: entry.timestamp || Date.now(),
+    id: Date.now() + Math.random()
+  };
+
+  logs.push(logEntry);
+
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+    io.emit('new_log', logEntry);
+  } catch (error) {
+    console.error('Error writing logs.json:', error);
+  }
 }
 
 // ---------- Authentication Middleware ----------
 function authenticateUser(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-        return res.status(401).json({ success: false, error: 'No authorization header' });
-    }
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ success: false, error: 'No authorization header' });
+  }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ success: false, error: 'Token missing' });
-    }
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ success: false, error: 'Token missing' });
+  }
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json({ success: false, error: 'Invalid token' });
-    }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, error: 'Invalid token' });
+  }
 }
 
 function authenticateAdminRoute(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-        return res.status(401).json({ success: false, error: 'No authorization header' });
-    }
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ success: false, error: 'No authorization header' });
+  }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ success: false, error: 'Token missing' });
-    }
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ success: false, error: 'Token missing' });
+  }
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        if (decoded.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Admin access required' });
-        }
-        req.admin = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json({ success: false, error: 'Invalid token' });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
     }
+    req.admin = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, error: 'Invalid token' });
+  }
 }
 
 // ---------- ADMIN RESET FUNCTION ----------
 async function createOrUpdateAdmin() {
-    const adminEmail = process.env.ADMIN_EMAIL || 'pikelelalikho@gmail.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || '@01Nexaadmin';
-    const adminName = process.env.ADMIN_NAME || 'Nexa Admin';
+  const adminEmail = process.env.ADMIN_EMAIL || 'pikelelalikho@gmail.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || '@01Nexaadmin';
+  const adminName = process.env.ADMIN_NAME || 'Nexa Admin';
 
-    try {
-        console.log('🔄 Creating/Updating admin user...');
-        
-        let users = readUsers();
-        const hashedPassword = await bcrypt.hash(adminPassword, 12);
+  try {
+    console.log('🔄 Creating/Updating admin user...');
 
-        const adminIndex = users.findIndex(u => u.email === adminEmail || u.role === 'admin');
-        
-        if (adminIndex !== -1) {
-            users[adminIndex] = {
-                ...users[adminIndex],
-                password: hashedPassword,
-                role: 'admin',
-                email: adminEmail,
-                name: adminName,
-                updatedAt: new Date().toISOString()
-            };
-            console.log('✅ Admin user updated successfully');
-        } else {
-            const newAdmin = {
-                id: Date.now(),
-                name: adminName,
-                email: adminEmail,
-                password: hashedPassword,
-                role: 'admin',
-                createdAt: new Date().toISOString()
-            };
-            users.push(newAdmin);
-            console.log('✅ New admin user created successfully');
-        }
+    let users = readUsers();
+    const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
-        if (saveUsers(users)) {
-            saveLog({ 
-                eventType: 'admin_reset', 
-                details: 'Admin password reset on server startup',
-                user: 'system'
-            });
-            
-            console.log('==========================================');
-            console.log('🔐 ADMIN LOGIN CREDENTIALS:');
-            console.log(`📧 Email: ${adminEmail}`);
-            console.log(`🔑 Password: ${adminPassword}`);
-            console.log('==========================================');
-        }
-        
-    } catch (error) {
-        console.error('❌ Error creating/updating admin:', error);
+    const adminIndex = users.findIndex(u => u.email === adminEmail || u.role === 'admin');
+
+    if (adminIndex !== -1) {
+      users[adminIndex] = {
+        ...users[adminIndex],
+        password: hashedPassword,
+        role: 'admin',
+        email: adminEmail,
+        name: adminName,
+        updatedAt: new Date().toISOString()
+      };
+      console.log('✅ Admin user updated successfully');
+    } else {
+      const newAdmin = {
+        id: Date.now(),
+        name: adminName,
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      };
+      users.push(newAdmin);
+      console.log('✅ New admin user created successfully');
     }
+
+    if (saveUsers(users)) {
+      saveLog({
+        eventType: 'admin_reset',
+        details: 'Admin password reset on server startup',
+        user: 'system'
+      });
+
+      console.log('==========================================');
+      console.log('🔐 ADMIN LOGIN CREDENTIALS:');
+      console.log(`📧 Email: ${adminEmail}`);
+      console.log(`🔑 Password: ${adminPassword}`);
+      console.log('==========================================');
+    }
+
+  } catch (error) {
+    console.error('❌ Error creating/updating admin:', error);
+  }
 }
 
 // ---------- Routes ----------
@@ -298,112 +299,112 @@ app.use('/api/admin', authenticateAdminRoute, adminRoutes);
 
 // ---------- Signup Route ----------
 app.post('/signup', signupLimiter, async (req, res) => {
-    const { name, email, password } = req.body;
+  const { name, email, password } = req.body;
 
-    // Validation
-    if (!name || !email || !password) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Missing required fields', 
-            user: email || 'unknown' 
-        });
-        return res.status(400).json({ success: false, error: 'All fields are required' });
-    }
+  // Validation
+  if (!name || !email || !password) {
+    saveLog({
+      eventType: 'signup_failed',
+      details: 'Missing required fields',
+      user: email || 'unknown'
+    });
+    return res.status(400).json({ success: false, error: 'All fields are required' });
+  }
 
-    if (name.trim().length < 2) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Name too short', 
-            user: email 
-        });
-        return res.status(400).json({ success: false, error: 'Name must be at least 2 characters' });
-    }
+  if (name.trim().length < 2) {
+    saveLog({
+      eventType: 'signup_failed',
+      details: 'Name too short',
+      user: email
+    });
+    return res.status(400).json({ success: false, error: 'Name must be at least 2 characters' });
+  }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Invalid email format', 
-            user: email 
-        });
-        return res.status(400).json({ success: false, error: 'Please enter a valid email address' });
-    }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    saveLog({
+      eventType: 'signup_failed',
+      details: 'Invalid email format',
+      user: email
+    });
+    return res.status(400).json({ success: false, error: 'Please enter a valid email address' });
+  }
 
-    if (password.length < 6) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Password too short', 
-            user: email 
-        });
-        return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
-    }
+  if (password.length < 6) {
+    saveLog({
+      eventType: 'signup_failed',
+      details: 'Password too short',
+      user: email
+    });
+    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+  }
 
-    const users = readUsers();
-    
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Email already exists', 
-            user: email 
-        });
-        return res.status(409).json({ success: false, error: 'Email already registered' });
-    }
+  const users = readUsers();
 
-    try {
-        const hashedPassword = await bcrypt.hash(password, 12);
-        const newUser = {
-            id: Date.now(),
-            name: name.trim(),
-            email: email.toLowerCase(),
-            password: hashedPassword,
-            role: 'user',
-            createdAt: new Date().toISOString(),
-            isActive: true
+  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+    saveLog({
+      eventType: 'signup_failed',
+      details: 'Email already exists',
+      user: email
+    });
+    return res.status(409).json({ success: false, error: 'Email already registered' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const newUser = {
+      id: Date.now(),
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: 'user',
+      createdAt: new Date().toISOString(),
+      isActive: true
+    };
+
+    users.push(newUser);
+
+    if (saveUsers(users)) {
+      saveLog({
+        eventType: 'signup_success',
+        details: `New user registered: ${name}`,
+        user: email
+      });
+
+      // Send welcome email
+      try {
+        const mailOptions = {
+          from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Welcome to Nexa East Hub!',
+          html: `
+              <h2>Welcome to Nexa East Hub!</h2>
+              <p>Hello ${name},</p>
+              <p>Your account has been created successfully.</p>
+              <p>You can now log in and explore our services.</p>
+              <br>
+              <p>Best regards,<br>Nexa Team</p>
+          `
         };
 
-        users.push(newUser);
-        
-        if (saveUsers(users)) {
-            saveLog({ 
-                eventType: 'signup_success', 
-                details: `New user registered: ${name}`, 
-                user: email 
-            });
+        await transporter.sendMail(mailOptions);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail the signup if email fails
+      }
 
-            // Send welcome email
-            try {
-                const mailOptions = {
-                    from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
-                    to: email,
-                    subject: 'Welcome to Nexa East Hub!',
-                    html: `
-                        <h2>Welcome to Nexa East Hub!</h2>
-                        <p>Hello ${name},</p>
-                        <p>Your account has been created successfully.</p>
-                        <p>You can now log in and explore our services.</p>
-                        <br>
-                        <p>Best regards,<br>Nexa Team</p>
-                    `
-                };
-
-                await transporter.sendMail(mailOptions);
-            } catch (emailError) {
-                console.error('Failed to send welcome email:', emailError);
-                // Don't fail the signup if email fails
-            }
-
-            res.json({ success: true, message: 'User registered successfully' });
-        } else {
-            throw new Error('Failed to save user data');
-        }
-    } catch (error) {
-        console.error('Signup error:', error);
-        saveLog({ 
-            eventType: 'signup_error', 
-            details: error.message, 
-            user: email 
-        });
-        res.status(500).json({ success: false, error: 'Internal server error' });
+      res.json({ success: true, message: 'User registered successfully' });
+    } else {
+      throw new Error('Failed to save user data');
     }
+  } catch (error) {
+    console.error('Signup error:', error);
+    saveLog({
+      eventType: 'signup_error',
+      details: error.message,
+      user: email
+    });
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
 });
 
 // ---------- Login Route ----------
