@@ -2,7 +2,8 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
-import nodemailer from 'nodemailer';  // added
+import path from 'path';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -77,51 +78,52 @@ function authenticateAdmin(req, res, next) {
 
 // Reset password route
 router.post('/reset-password', async (req, res) => {
-  const { password, token } = req.body;
+    const { password, token } = req.body;
 
-  if (!password || !token) {
-    return res.status(400).json({ success: false, error: 'Password and token are required.' });
-  }
+    if (!password || !token) {
+        return res.status(400).json({ success: false, error: 'Password and token are required.' });
+    }
 
-  if (password.length < 6) {
-    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
-  }
+    if (password.length < 6) {
+        return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
+    }
 
-  let decoded;
-  try {
-    decoded = jwt.verify(token, JWT_SECRET);
-  } catch (err) {
-    saveLog({
-      timestamp: Date.now(),
-      eventType: 'password_reset_failed',
-      user: 'unknown',
-      details: err.message,
-    });
-    return res.status(400).json({ success: false, error: 'Invalid or expired token.' });
-  }
+    let decoded;
+    try {
+        decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+        saveLog({
+            timestamp: Date.now(),
+            eventType: 'password_reset_failed',
+            user: 'unknown',
+            details: err.message,
+        });
+        return res.status(400).json({ success: false, error: 'Invalid or expired token.' });
+    }
 
-  const users = readUsers();
-  const userIndex = users.findIndex(u => u.email.toLowerCase() === decoded.email.toLowerCase());
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, error: 'User not found.' });
-  }
+    const users = readUsers();
+    const userIndex = users.findIndex(u => u.email.toLowerCase() === decoded.email.toLowerCase());
+    if (userIndex === -1) {
+        return res.status(404).json({ success: false, error: 'User not found.' });
+    }
 
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    users[userIndex].password = hashedPassword;
-    saveUsers(users);
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        users[userIndex].password = hashedPassword;
+        saveUsers(users);
 
-    saveLog({ timestamp: Date.now(), eventType: 'password_reset', user: decoded.email });
+        saveLog({ timestamp: Date.now(), eventType: 'password_reset', user: decoded.email });
 
-    res.json({ success: true, message: 'Password updated successfully.' });
-  } catch (err) {
-    console.error('Error updating password:', err);
-    res.status(500).json({ success: false, error: 'Server error updating password.' });
-  }
+        res.json({ success: true, message: 'Password updated successfully.' });
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).json({ success: false, error: 'Server error updating password.' });
+    }
 });
 
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+// 404 handler for unmatched routes in this router
+router.use((req, res) => {
+    res.status(404).sendFile(path.resolve('public/404.html'));
 });
 
 router.get('/admin/logs', authenticateAdmin, (req, res) => {
