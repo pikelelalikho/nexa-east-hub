@@ -27,6 +27,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
+
 const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
@@ -36,6 +37,9 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
+
+// Here you attach your router
+app.use('/login', apiRoutes);
 
 // ---------- JWT Secret ----------
 const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
