@@ -56,6 +56,7 @@ function saveLog(entry) {
     }
 }
 
+// Admin authentication middleware
 function authenticateAdmin(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(401).json({ success: false, error: 'No authorization header' });
@@ -75,6 +76,53 @@ function authenticateAdmin(req, res, next) {
         return res.status(401).json({ success: false, error: 'Invalid token' });
     }
 }
+
+// Login route
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ success: false, error: 'Email and password required' });
+        }
+
+        const users = readUsers();
+        const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+        if (!user) {
+            return res.status(401).json({ success: false, error: 'Invalid email or password' });
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ success: false, error: 'Invalid email or password' });
+        }
+
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        saveLog({
+            timestamp: Date.now(),
+            eventType: 'login_success',
+            user: email,
+            details: 'User logged in successfully'
+        });
+
+        res.json({ success: true, token });
+    } catch (error) {
+        console.error('Login error:', error);
+        saveLog({
+            timestamp: Date.now(),
+            eventType: 'login_error',
+            user: req.body.email || 'unknown',
+            details: error.message,
+        });
+        res.status(500).json({ success: false, error: 'An error occurred during login.' });
+    }
+});
 
 // Reset password route
 router.post('/reset-password', async (req, res) => {
@@ -121,14 +169,15 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-// 404 handler for unmatched routes in this router
-router.use((req, res) => {
-    res.status(404).sendFile(path.resolve('public/404.html'));
-});
-
+// Admin logs retrieval route
 router.get('/admin/logs', authenticateAdmin, (req, res) => {
     const logs = fs.existsSync('logs.json') ? JSON.parse(fs.readFileSync('logs.json', 'utf-8')) : [];
     res.json(logs);
+});
+
+// 404 handler for unmatched routes in this router
+router.use((req, res) => {
+    res.status(404).sendFile(path.resolve('public/404.html'));
 });
 
 export default router;
