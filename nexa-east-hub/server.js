@@ -39,11 +39,17 @@ const io = new Server(server, {
 });
 
 // Here you attach your router
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 app.use('/login', apiRoutes);
-app.use(express.json());
+app.use('/auth', authRoutes);
+app.use('/admin', adminRoutes);
+
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
+
 
 
 // ---------- JWT Secret ----------
