@@ -32,11 +32,10 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: {
-        origin: process.env.NODE_ENV === 'production' ? false : ["http://localhost:3000"],
-        methods: ["GET", "POST"]
-    }
-});
+    app.use(cors({
+      origin: ['http://localhost:5500', 'https://nexa-east-hub.onrender.com'], // include both dev and prod URLs
+      credentials: true
+    }));
 
 // Here you attach your router
 app.use(express.json({ limit: '10mb' }));
