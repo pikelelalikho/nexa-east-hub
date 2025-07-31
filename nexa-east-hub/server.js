@@ -26,7 +26,7 @@ const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
 
 // ---------- Email Transporter ----------
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
