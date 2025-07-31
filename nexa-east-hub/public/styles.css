@@ -531,6 +531,35 @@ p  { font-size: 1rem; }
   .nav-menu.active {
     display: flex;
   }
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    background: white;
+    position: absolute;
+    top: 70px; /* or var(--header-height) */
+    left: 0;
+    right: 0;
+    padding: 1rem 2rem;
+  }
+
+  .nav-menu.active {
+    display: flex;
+  }
+}
+.nav-menu {
+  transition: all 0.3s ease;
+}
+.logo:focus,
+.nav-link:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 
   /* Hero */
   .hero h1 {
