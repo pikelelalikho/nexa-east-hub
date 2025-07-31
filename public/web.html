@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEXA East Hub (Pty) Ltd - Internet Café & Tech Services | Cape Town</title>
+  <meta name="description" content="Professional internet café and tech services in Cape Town. Computer repairs, training, graphic design, and AI solutions." />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header role="banner">
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation" aria-label="Main Navigation">
+      <div class="nav-container">
+        <div class="logo" tabindex="0">NEXA East Hub</div>
+        <button type="button" aria-label="Toggle menu" class="mobile-menu-toggle" id="mobileMenuToggle" aria-expanded="false" aria-controls="navMenu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul id="navMenu" class="nav-menu">
+          <li><a href="index.html" class="nav-link">Back</a></li>
+          <li><a href="#services" class="nav-link">Services</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+          <li id="authLinks">
+            <!-- JS will inject login/signup or dashboard/logout here -->
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="home" class="hero" tabindex="-1" aria-label="Hero Section">
+      <div class="hero-content">
+        <h1>NEXA East Hub</h1>
+        <p>Your Premier Internet Café & Tech Services Partner in Cape Town</p>
+        <p>From computer repairs to AI solutions, we've got all your technology needs covered with professional service and expert support.</p>
+        <div class="cta-buttons">
+          <a href="#contact" class="btn btn-primary" role="button">
+            <i class="fas fa-phone" aria-hidden="true"></i>
+            Get a Quote
+          </a>
+          <a href="#services" class="btn btn-secondary" role="button">
+            <i class="fas fa-arrow-down" aria-hidden="true"></i>
+            Our Services
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="section" aria-labelledby="servicesTitle">
+      <div class="section-header">
+        <h2 id="servicesTitle" class="section-title">Our Services</h2>
+        <p class="section-subtitle">Comprehensive technology solutions designed to meet all your digital needs with professional excellence and reliability.</p>
+      </div>
+      <div class="services-grid" role="list">
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-wifi" aria-hidden="true"></i></div>
+          <h3>Internet Café Services</h3>
+          <p>Complete internet access and office services for all your digital needs.</p>
+          <ul class="service-features">
+            <li>High-speed internet browsing</li>
+            <li>Professional printing services</li>
+            <li>Document scanning & copying</li>
+            <li>Email and social media access</li>
+          </ul>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-tools" aria-hidden="true"></i></div>
+          <h3>Computer Repairs & Software</h3>
+          <p>Expert technical support to keep your devices running smoothly.</p>
+          <ul class="service-features">
+            <li>Windows updates & maintenance</li>
+            <li>Hardware troubleshooting</li>
+            <li>Software installation & setup</li>
+            <li>Virus removal & security</li>
+          </ul>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></div>
+          <h3>Computer Literacy Training</h3>
+          <p>Comprehensive IT education to boost your digital skills and confidence.</p>
+          <ul class="service-features">
+            <li>Basic IT fundamentals</li>
+            <li>Microsoft Office training</li>
+            <li>Typing skills improvement</li>
+            <li>Internet navigation basics</li>
+          </ul>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-palette" aria-hidden="true"></i></div>
+          <h3>Graphic Design</h3>
+          <p>Creative design solutions to make your brand stand out professionally.</p>
+          <ul class="service-features">
+            <li>Eye-catching poster design</li>
+            <li>Professional flyers & brochures</li>
+            <li>Business cards & stationery</li>
+            <li>Social media graphics</li>
+          </ul>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-image" aria-hidden="true"></i></div>
+          <h3>Photo Editing & Branding</h3>
+          <p>Professional image enhancement and personal branding services.</p>
+          <ul class="service-features">
+            <li>Profile photo enhancement</li>
+            <li>Personal branding visuals</li>
+            <li>Image touch-ups & restoration</li>
+            <li>Logo design & brand identity</li>
+          </ul>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-robot" aria-hidden="true"></i></div>
+          <h3>AI Tools & Chatbot Services</h3>
+          <p>Cutting-edge AI solutions to automate and enhance your business operations.</p>
+          <ul class="service-features">
+            <li>Custom chatbot development</li>
+            <li>AI-powered resume builders</li>
+            <li>Image generation tools</li>
+            <li>Business automation solutions</li>
+          </ul>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <h3>Graphic Design</h3>
+          <p>Logos, flyers, posters, and brand kits for personal or business use.</p>
+        </article>
+        
+        <article class="service-card" role="listitem" tabindex="0">
+          <h3>Music Branding</h3>
+          <p>Cover art, press kits, promo banners, and visuals for releases and events.</p>
+        </article>
+      </div>
+    </section>
+        <!-- Customer Testimonials Section -->
+    <section class="testimonials-section" id="testimonials">
+      <div class="testimonials-container">
+        <div class="section-header">
+          <h2 class="section-title">Customer Success Stories</h2>
+          <p class="section-subtitle">See how NEXA East Hub has helped our customers achieve their technology goals. Share your own success story and inspire others!</p>
+        </div>
+
+        <!-- Testimonial Submission Form -->
+        <div class="testimonial-form">
+          <h3 class="form-title">
+            <i class="fas fa-star"></i>
+            Share Your Success Story
+          </h3>
+          
+          <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle"></i>
+            <span>Thank you! Your testimonial has been submitted successfully.</span>
+          </div>
+
+          <form id="testimonialForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="customerName">Your Name *</label>
+                <input type="text" id="customerName" name="customerName" required placeholder="Enter your full name">
+              </div>
+              <div class="form-group">
+                <label for="serviceUsed">Service You Used *</label>
+                <select id="serviceUsed" name="serviceUsed" required>
+                  <option value="">Select a service</option>
+                  <option value="Internet Café Services">Internet Café Services</option>
+                  <option value="Computer Repairs & Software">Computer Repairs & Software</option>
+                  <option value="Computer Literacy Training">Computer Literacy Training</option>
+                  <option value="Graphic Design">Graphic Design</option>
+                  <option value="Photo Editing & Branding">Photo Editing & Branding</option>
+                  <option value="AI Tools & Chatbot Services">AI Tools & Chatbot Services</option>
+                  <option value="Music Branding">Music Branding</option>
+                  <option value="Content Creation">Content Creation</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="rating">Rate Your Experience *</label>
+                <select id="rating" name="rating" required>
+                  <option value="">Select rating</option>
+                  <option value="5">⭐⭐⭐⭐⭐ Excellent (5 stars)</option>
+                  <option value="4">⭐⭐⭐⭐ Very Good (4 stars)</option>
+                  <option value="3">⭐⭐⭐ Good (3 stars)</option>
+                  <option value="2">⭐⭐ Fair (2 stars)</option>
+                  <option value="1">⭐ Poor (1 star)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="testimonialText">Tell Us How We Helped You *</label>
+              <textarea id="testimonialText" name="testimonialText" rows="3" required placeholder="Describe how NEXA East Hub helped you achieve your goals..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="testimonialFileInput">Upload Screenshots (Optional)</label>
+              <label for="testimonialFileInput" class="file-upload-area" style="cursor:pointer;">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <div class="upload-text">Click to upload or drag and drop</div>
+                <div class="upload-subtext">Show your results or completed projects</div>
+              </label>
+              <input type="file" id="testimonialFileInput" accept="image/*" multiple style="display:none;">
+              <div class="image-preview" id="imagePreview"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i>
+              Submit Your Story
+            </button>
+          </form>
+        </div>
+
+        <!-- Existing Testimonials Display -->
+        <div class="testimonials-grid" id="testimonialsGrid">
+          <!-- Testimonials will be populated here -->
+        </div>
+      </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="section about" aria-labelledby="aboutTitle">
+      <div class="about-content">
+        <h2 id="aboutTitle">About NEXA East Hub</h2>
+        <p>Located in the heart of Cape Town, NEXA East Hub (Pty) Ltd has been serving the community with comprehensive technology solutions since our establishment. We pride ourselves on being more than just an internet café – we're your complete digital partner.</p>
+        <p>Our experienced team combines technical expertise with exceptional customer service to deliver solutions that empower individuals and businesses to thrive in the digital age. From basic computer skills to advanced AI implementations, we're here to bridge the technology gap.</p>
+        <div class="about-stats">
+          <div class="stat" tabindex="0">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">Happy Clients</span>
+          </div>
+          <div class="stat" tabindex="0">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">Years Experience</span>
+          </div>
+          <div class="stat" tabindex="0">
+            <span class="stat-number">6</span>
+            <span class="stat-label">Core Services</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-image" aria-hidden="true">
+        <i class="fas fa-building"></i>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section contact" aria-labelledby="contactTitle">
+      <div class="section-header">
+        <h2 id="contactTitle" class="section-title">Get In Touch</h2>
+        <p class="section-subtitle">Ready to get started? Contact us today for a free consultation and discover how we can help transform your digital experience.</p>
+      </div>
+
+      <div class="contact-content">
+        <aside class="contact-info" aria-label="Contact Information">
+          <h3>Contact Information</h3>
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+            <div>
+              <strong>Visit Our Location</strong><br />
+              [Your Street Address]<br />
+              Cape Town, Western Cape<br />
+              South Africa
+            </div>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-phone" aria-hidden="true"></i>
+            <div>
+              <strong>Call Us</strong><br />
+              +27 79 126 8223<br />
+              Available during business hours
+            </div>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-envelope" aria-hidden="true"></i>
+            <div>
+              <strong>Email Us</strong><br />
+              info@nexaeasthub.co.za<br />
+              We'll respond within 24 hours
+            </div>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-clock" aria-hidden="true"></i>
+            <div>
+              <strong>Business Hours</strong><br />
+              Monday - Friday: 8:00 AM - 6:00 PM<br />
+              Saturday: 9:00 AM - 4:00 PM<br />
+              Sunday: Closed
+            </div>
+          </div>
+        </aside>
+
+        <form id="contactForm" class="contact-form" aria-label="Send us a message">
+            <h3>Send Us a Message</h3>
+            <div class="form-group">
+              <label for="name">Full Name *</label>
+              <input type="text" id="name" name="name" required placeholder="Enter your full name" />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" name="email" required placeholder="Enter your email address" />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" />
+            </div>
+            <div class="form-group">
+              <label for="service">Service Interested In</label>
+              <input type="text" id="service" name="service" placeholder="e.g., Computer Repair, Training, Design" />
+            </div>
+            <div class="form-group">
+              <label for="message">Message *</label>
+              <textarea id="message" name="message" rows="5" required placeholder="Tell us about your project or requirements..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" aria-label="Send message">
+              <i class="fas fa-paper-plane" aria-hidden="true"></i>
+              Send Message
+            </button>
+          </form>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>NEXA East Hub (Pty) Ltd</h4>
+        <p>Your trusted technology partner in Cape Town, providing comprehensive digital solutions for individuals and businesses.</p>
+        <div class="social-links" role="list">
+          <a href="#" aria-label="Facebook" role="listitem" tabindex="0"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="Instagram" role="listitem" tabindex="0"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="LinkedIn" role="listitem" tabindex="0"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" aria-label="WhatsApp" role="listitem" tabindex="0"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <p><a href="#home">Home</a></p>
+        <p><a href="#services">Our Services</a></p>
+        <p><a href="#about">About Us</a></p>
+        <p><a href="#contact">Contact</a></p>
+      </div>
+      <div class="footer-section">
+        <h4>Services</h4>
+        <p><a href="#services">Internet Café</a></p>
+        <p><a href="#services">Computer Repairs</a></p>
+        <p><a href="#services">IT Training</a></p>
+        <p><a href="#services">Graphic Design</a></p>
+        <p><a href="#services">AI Solutions</a></p>
+      </div>
+      <div class="footer-section">
+        <h4>Contact Info</h4>
+        <p><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Cape Town, Western Cape</p>
+        <p><i class="fas fa-phone" aria-hidden="true"></i> +27 79 126 8223</p>
+        <p><i class="fas fa-envelope" aria-hidden="true"></i> info@nexaeasthub.co.za</p>
+        <p><i class="fas fa-clock" aria-hidden="true"></i> Mon-Fri: 8AM-6PM</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 NEXA East Hub (Pty) Ltd. All rights reserved. | Professional Technology Services in Cape Town</p>
+    </div>
+  </footer>
+
+  <noscript>
+    <p style="text-align:center; color: red; font-weight: bold;">Please enable JavaScript to fully experience this website.</p>
+  </noscript>
+
+  <script>
+    // Check if user is logged in and update nav links accordingly
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    const authLinksContainer = document.getElementById('authLinks');
+
+    function updateAuthLinks() {
+      if (user && user.name) {
+        authLinksContainer.innerHTML = `
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="#" class="nav-link" tabindex="-1">Signed in as ${user.name}</a>
+          <a href="#" class="nav-link" id="logoutBtn">Logout</a>
+        `;
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+      } else {
+        authLinksContainer.innerHTML = `
+          <a href="signup.html" class="nav-link">Sign Up</a>
+          <a href="login.html" class="nav-link">Login</a>
+        `;
+      }
+    }
+
+    function logout(event) {
+      event.preventDefault();
+      localStorage.removeItem('loggedInUser');
+      alert('You have been logged out.');
+      updateAuthLinks();
+    }
+
+    updateAuthLinks();
+
+    // Mobile menu toggle logic
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const navMenu = document.getElementById('navMenu');
+
+    mobileMenuToggle.addEventListener('click', () => {
+      const expanded = mobileMenuToggle.getAttribute('aria-expanded') === 'true' || false;
+      mobileMenuToggle.setAttribute('aria-expanded', !expanded);
+      navMenu.classList.toggle('active');
+    });
+
+
+  const socket = io();
+
+  socket.on('new_log', (data) => {
+    console.log('📥 New log received:', data);
+    // You could update a <ul> or <table> here with new logs
+  });
+
+      document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('testimonialForm');
+      const successMessage = document.getElementById('successMessage');
+      const testimonialsGrid = document.getElementById('testimonialsGrid');
+
+      successMessage.style.display = 'none'; // hide success message initially
+
+      // Helper to create testimonial card HTML element
+      function renderTestimonial(testimonial) {
+        const div = document.createElement('div');
+        div.classList.add('testimonial-item');
+        div.innerHTML = `
+          <h4>${testimonial.name} <small>(${testimonial.service})</small></h4>
+          <p>Rating: ${'⭐'.repeat(testimonial.rating)}</p>
+          <p>${testimonial.text}</p>
+          <small>Submitted on: ${new Date(testimonial.date).toLocaleDateString()}</small>
+        `;
+        return div;
+      }
+
+      // Load testimonials from localStorage and display
+      function loadTestimonials() {
+        const testimonials = JSON.parse(localStorage.getItem('testimonials') || '[]');
+        testimonialsGrid.innerHTML = '';
+        testimonials.forEach(t => {
+          testimonialsGrid.appendChild(renderTestimonial(t));
+        });
+      }
+
+      // Form submit handler
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const testimonial = {
+          name: form.customerName.value.trim(),
+          service: form.serviceUsed.value,
+          rating: form.rating.value,
+          text: form.testimonialText.value.trim(),
+          date: new Date().toISOString(),
+        };
+
+        // Save to localStorage
+        const testimonials = JSON.parse(localStorage.getItem('testimonials') || '[]');
+        testimonials.push(testimonial);
+        localStorage.setItem('testimonials', JSON.stringify(testimonials));
+
+        // Show success message
+        successMessage.style.display = 'block';
+
+        // Append new testimonial instantly
+        testimonialsGrid.appendChild(renderTestimonial(testimonial));
+
+        // Reset form & image preview if you have one
+        form.reset();
+        const imagePreview = document.getElementById('imagePreview');
+        if (imagePreview) imagePreview.innerHTML = '';
+      });
+
+      // Initial load
+      loadTestimonials();
+    });
+
+    // Example pseudo-code for client-side routing
+if (!knownRoute(path)) {
+  // dynamically render your 404 component or redirect to 404.html
+  window.location.href = "/404.html";
+}
+
+  </script>
+  <script src="script.js" defer></script>
+  <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>

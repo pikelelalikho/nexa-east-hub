@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login - NEXA East Hub</title>
+    <link rel="stylesheet" href="stylesforms.css" />
+</head>
+<body>
+    <section class="contact">
+        <h2>Login to Your Account</h2>
+        <form class="contact-form" id="login-form" aria-label="Login Form">
+            <input type="email" name="email" placeholder="Email Address" required autocomplete="username" />
+            <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
+            <button type="submit">Login</button>
+            <p><a href="forgot-password.html">Forgot Password?</a></p>
+            <p>Don’t have an account? <a href="signup.html">Sign up</a></p>
+        </form>
+    </section>
+
+    <script src="script.js" defer></script>
+    <script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('new_log', (data) => {
+    console.log('📥 New log received:', data);
+    // Optionally update the UI with the log
+  });
+</script>
+
+</body>
+</html>

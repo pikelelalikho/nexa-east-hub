@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEXA East Hub | Digital Tech Services in Cape Town</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <meta name="description" content="NEXA East Hub offers Internet Café services, computer repairs, IT training, graphic design, and AI solutions in Cape Town." />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    p {
+      font-size: 1.25rem;
+      max-width: 600px;
+      margin-bottom: 2.5rem;
+      line-height: 1.5;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      padding: 0.75rem 1.75rem;
+      background: white;
+      color: #2563eb;
+      font-weight: 700;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      outline-offset: 3px;
+      outline: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .btn:hover,
+    .btn:focus-visible {
+      background: #f97316;
+      color: white;
+      box-shadow: 0 6px 12px rgba(249, 115, 22, 0.6);
+      outline: none;
+    }
+    .btn:focus-visible {
+      outline: 3px solid #fff8e1;
+      outline-offset: 4px;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem 0;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      -webkit-user-select: none;
+      -webkit-user-select: none;
+      user-select: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+      background: transparent;
+    }
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 2.2rem;
+      }
+      p {
+        font-size: 1rem;
+      }
+      .btn {
+        padding: 0.65rem 1.2rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Welcome to NEXA East Hub</h1>
+    <p>Your trusted partner for Internet Café services, Computer Repairs, IT Training, Graphic Design, and AI Solutions in Cape Town.</p>
+    <div class="btn-group" role="navigation" aria-label="Main navigation">
+      <a href="web.html" class="btn">Enter Website</a>
+      <a href="signup.html" class="btn">Create Account</a>
+      <a href="login.html" class="btn">Login</a>
+      <a href="contact.html" class="btn">Contact Us</a>
+    </div>
+  </main>
+  <footer>
+    &copy; 2025 NEXA East Hub (Pty) Ltd. All rights reserved.
+  </footer>
+  <script src="script.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    sendLog('page_visit', 'index.html');
+  });
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

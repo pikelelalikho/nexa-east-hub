@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dashboard - NEXA East Hub</title>
+  <link rel="stylesheet" href="stylesforms.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .top-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .top-bar button {
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      justify-content: center;
+    }
+
+    .intro {
+      text-align: center;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .intro h1 {
+      font-size: 2.5rem;
+      color: #1d4ed8;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      font-size: 1.1rem;
+      color: #555;
+    }
+
+    .services,
+    .form-container {
+      flex: 1 1 450px;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    .services h2,
+    .form-container h2 {
+      color: #2563eb;
+      margin-bottom: 20px;
+    }
+
+    .service-item {
+      margin-bottom: 20px;
+    }
+
+    .service-item h3 {
+      margin: 0 0 5px;
+      color: #1e3a8a;
+    }
+
+    .service-item p {
+      margin: 0;
+      color: #555;
+    }
+
+    a.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #1d4ed8;
+  color: white;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.btn:hover {
+  background: #2563eb;
+}
+
+
+    form input,
+    form textarea,
+    form select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    form button {
+      width: 100%;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    form button:hover {
+      background: #1d4ed8;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        padding: 20px;
+      }
+
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .intro h1 {
+        font-size: 2rem;
+      }
+
+      .intro p {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      .services,
+      .form-container {
+        padding: 20px;
+      }
+
+      .intro h1 {
+        font-size: 1.75rem;
+      }
+
+      .top-bar button {
+        width: 100%;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+ <div class="top-bar" role="banner">
+  <div class="intro">
+    <h1>🎨 Design & 🎵 Music Services</h1>
+    <p>Creative solutions tailored to your brand, sound, and style.</p>
+  </div>
+  <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
+</div>
+
+
+  <main class="container" role="main">
+    <section class="services" aria-labelledby="services-heading">
+      <h2 id="services-heading">What We Offer</h2>
+      <article class="service-item" tabindex="0" aria-label="Graphic Design services">
+        <h3>Graphic Design</h3>
+        <p>Logos, posters, social media kits, brand identity, and more.</p>
+      </article>
+      <article class="service-item" tabindex="0" aria-label="Music Production services">
+        <h3>Music Production</h3>
+        <p>Beat-making, mixing, mastering, and vocal editing.</p>
+      </article>
+      <article class="service-item" tabindex="0" aria-label="Custom Projects">
+        <h3>Custom Projects</h3>
+        <p>Send us your creative idea and we’ll bring it to life.</p>
+      </article>
+    </section>
+
+    <section class="form-container" aria-labelledby="request-service-heading">
+      <h2 id="request-service-heading">Request a Service</h2>
+      <form id="service-contact-form" novalidate aria-describedby="form-error-message" aria-live="polite">
+        <input type="text" name="name" placeholder="Your Full Name" required aria-required="true" aria-label="Full Name" />
+        <input type="email" name="email" placeholder="Your Email Address" required aria-required="true" aria-label="Email Address" />
+        <input type="tel" name="phone" placeholder="Phone Number (optional)" aria-label="Phone Number" pattern="[\+]?[0-9\s\-]{7,15}" title="Enter a valid phone number" />
+        <label for="service-select" class="visually-hidden">Select a service</label>
+        <select id="service-select" name="service" required aria-required="true" aria-label="Select a service">
+          <option value="" disabled selected>Select a service</option>
+          <option value="Graphic Design">Graphic Design</option>
+          <option value="Music Production">Music Production</option>
+          <option value="Custom Project">Custom Project</option>
+        </select>
+        <textarea name="message" placeholder="Describe your idea or ask us a question" rows="5" required aria-required="true" aria-label="Message"></textarea>
+        <div id="form-error-message" role="alert"></div>
+        <button type="submit">Send Request</button>
+      </form>
+    </section>
+  </main>
+<script>
+  document.querySelector('.top-bar button')?.addEventListener('click', () => {
+    window.location.href = 'user-dashboard.html';
+  });
+</script>
+
+  <!-- Unified, clean JS loading -->
+  <script src="script.js"></script>
+</body>
+</html>

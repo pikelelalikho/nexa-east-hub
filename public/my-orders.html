@@ -1,0 +1,75 @@
+<!-- File: public/my-orders.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Orders – NEXA East Hub</title>
+  <link rel="stylesheet" href="stylesforms.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 2rem 1rem;
+      color: #1e293b;
+    }
+    section.contact {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    h2 {
+      color: #2563eb;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #475569;
+    }
+    a.btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #2563eb;
+      color: white;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    a.btn:hover,
+    a.btn:focus {
+      background-color: #1e40af;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <section class="contact" aria-label="My Orders section">
+    <h2>📁 My Orders</h2>
+    <p><em>This feature is coming soon!</em></p>
+    <p>Here you'll be able to track your design, music, and AI tool requests.</p>
+
+    <a href="user-dashboard.html" class="btn" role="button" aria-label="Back to Dashboard">← Back to Dashboard</a>
+  </section>
+  <script src="script.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('new_log', (data) => {
+    console.log('📥 New log received:', data);
+    // Optionally update the UI with the log
+  });
+</script>
+
+</body>
+</html>

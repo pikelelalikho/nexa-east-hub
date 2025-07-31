@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard - NEXA East Hub</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      margin: 0;
+      padding: 0;
+    }
+    .dashboard {
+      max-width: 1000px;
+      margin: 3rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    .dashboard h2 {
+      font-size: 2rem;
+      color: #2563eb;
+      margin-bottom: 1rem;
+    }
+    .welcome-msg {
+      font-size: 1.1rem;
+      color: #374151;
+      margin-bottom: 2rem;
+    }
+    .about-section {
+      background: #e0f2fe;
+      border-left: 5px solid #2563eb;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .dashboard-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .action-card {
+      background: #e0f2fe;
+      border-left: 5px solid #2563eb;
+      padding: 1.5rem;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: #1e3a8a;
+      font-weight: 500;
+    }
+    .action-card:hover {
+      background: #bfdbfe;
+      transform: translateY(-2px);
+    }
+    .logout-btn {
+      margin-top: 2rem;
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #ef4444;
+      color: white;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: bold;
+      margin-right: 1rem;
+    }
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Welcome👋</h2>
+    <p class="welcome-msg">This is your personal dashboard. From here, you can explore services, submit requests, and access Nexa tools.</p>
+
+    <section class="about-section" aria-label="About NEXA East Hub">
+      <h3>About NEXA East Hub</h3>
+      <p>NEXA East Hub is your one-stop platform for creative design, music production, and AI-powered tools. We are committed to helping you bring your ideas to life with professional services and innovative technology.</p>
+    </section>
+
+    <div class="dashboard-actions">
+      <a href="services-music-online.html" class="action-card">🎨 View Design & Music Services</a>
+      <a href="contact.html" class="action-card">📩 Submit a Service Request</a>
+      <a href="ai-tools.html" class="action-card">🤖 Access AI Tools (Resume Builder, Chatbot)</a>
+      <a href="my-orders.html" class="action-card">📁 My Orders</a>
+    </div>
+
+    <a href="index.html" class="logout-btn">Logout</a>
+    <a href="home.html" class="logout-btn">Home</a>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('✅ Connected to socket server');
+  });
+
+  socket.on('new_log', (entry) => {
+    console.log('📝 New log received:', entry);
+    // Optionally update the DOM here
+  });
+</script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
