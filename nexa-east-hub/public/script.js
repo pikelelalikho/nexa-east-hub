@@ -1215,7 +1215,16 @@ form.addEventListener('submit', (e) => {
   form.reset();
   document.getElementById('imagePreview').innerHTML = '';
 });
-    
+
+  const toggle = document.getElementById('mobileMenuToggle');
+  const navMenu = document.getElementById('navMenu');
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    navMenu.classList.toggle('active');
+  });
+
 
 // Uncomment to use:
 // fetchAdminLogs();
