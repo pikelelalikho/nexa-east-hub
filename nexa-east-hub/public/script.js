@@ -1225,6 +1225,29 @@ form.addEventListener('submit', (e) => {
     navMenu.classList.toggle('active');
   });
 
+  const navbar = document.querySelector('.navbar');
+  let lastScrollY = window.scrollY;
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > lastScrollY && window.scrollY > 100) {
+      navbar.classList.add('hide'); // scrolling down
+    } else {
+      navbar.classList.remove('hide'); // scrolling up
+    }
+    lastScrollY = window.scrollY;
+  });
+
+  // Mobile toggle
+  const toggle = document.getElementById('mobileMenuToggle');
+  const navMenu = document.getElementById('navMenu');
+
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      navMenu.classList.toggle('active');
+    });
+  }
 
 // Uncomment to use:
 // fetchAdminLogs();
