@@ -103,13 +103,47 @@ a.btn:hover {
   background: #2563eb;
 }
 
+/* Styling for the button section */
+#button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #ccc;
+}
+
+/* Top bar container */
+.top-bar {
+  background-color: #fff;
+  padding: 10px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard button styling */
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  color: #fff;
+  background-color: #0078d4;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover effect */
+.btn:hover {
+  background-color: #005a9e;
+  transform: scale(1.05);
+}
+
   </style>
 </head>
 <body>
 
-  <div class="top-bar">
-    <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
-  </div>
 
   <div class="contact">
     <h2>Contact Us</h2>
@@ -137,6 +171,11 @@ a.btn:hover {
       <button type="submit">Send Message</button>
     </form>
   </div>
+  <section name="section" id="button">
+      <div class="top-bar">
+      <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
+  </div>
+  </section>
   <script src="script.js" defer></script>
   <script>
   document.querySelector('.top-bar button')?.addEventListener('click', () => {
