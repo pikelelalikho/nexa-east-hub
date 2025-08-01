@@ -4,123 +4,132 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Dashboard - NEXA East Hub</title>
-  <link rel="stylesheet" href="stylesforms.css" />
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f4f7fa;
       color: #333;
       line-height: 1.6;
     }
 
-    .top-bar {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+    header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
     }
 
-    .top-bar button {
+    .logo-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #1d4ed8;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
       background: #1d4ed8;
       color: white;
-      border: none;
-      padding: 10px 16px;
       border-radius: 6px;
       font-size: 1rem;
-      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.3s ease;
     }
 
-    .container {
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    .main-wrapper {
       max-width: 1200px;
-      margin: auto;
-      padding: 40px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 40px;
-      justify-content: center;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
     }
 
-    .intro {
+    .intro-box {
       text-align: center;
-      width: 100%;
-      margin-bottom: 30px;
+      background: #e0ecff;
+      padding: 2rem;
+      border-radius: 12px;
     }
 
-    .intro h1 {
-      font-size: 2.5rem;
+    .intro-box h1 {
+      font-size: 2rem;
       color: #1d4ed8;
-      margin-bottom: 10px;
+      margin-bottom: 0.5rem;
     }
 
-    .intro p {
+    .intro-box p {
       font-size: 1.1rem;
-      color: #555;
+      color: #444;
     }
 
-    .services,
-    .form-container {
-      flex: 1 1 450px;
+    .grid-section {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid-section {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
       background: white;
       border-radius: 12px;
-      padding: 30px;
+      padding: 2rem;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     }
 
-    .services h2,
-    .form-container h2 {
+    .card h2 {
       color: #2563eb;
-      margin-bottom: 20px;
+      margin-bottom: 1.5rem;
+      font-size: 1.4rem;
     }
 
     .service-item {
-      margin-bottom: 20px;
+      margin-bottom: 1.5rem;
     }
 
     .service-item h3 {
-      margin: 0 0 5px;
+      margin-bottom: 0.3rem;
       color: #1e3a8a;
+      font-size: 1.1rem;
     }
 
     .service-item p {
-      margin: 0;
       color: #555;
+      font-size: 0.95rem;
     }
-
-    a.btn {
-  display: inline-block;
-  padding: 10px 16px;
-  background: #1d4ed8;
-  color: white;
-  border-radius: 6px;
-  font-size: 1rem;
-  text-decoration: none;
-  cursor: pointer;
-}
-a.btn:hover {
-  background: #2563eb;
-}
-
 
     form input,
     form textarea,
     form select {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ddd;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 1rem;
     }
 
     form button {
       width: 100%;
-      padding: 12px;
+      padding: 0.75rem;
       background: #2563eb;
       color: white;
       border: none;
@@ -143,44 +152,15 @@ a.btn:hover {
       overflow: hidden;
     }
 
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        padding: 20px;
-      }
-
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .intro h1 {
-        font-size: 2rem;
-      }
-
-      .intro p {
-        font-size: 1rem;
-      }
-    }
-
     @media (max-width: 480px) {
-      .container {
-        padding: 20px 15px;
+      header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
       }
 
-      .services,
-      .form-container {
-        padding: 20px;
-      }
-
-      .intro h1 {
-        font-size: 1.75rem;
-      }
-
-      .top-bar button {
-        width: 100%;
-        font-size: 1rem;
+      .intro-box h1 {
+        font-size: 1.5rem;
       }
     }
   </style>
@@ -188,58 +168,60 @@ a.btn:hover {
 
 <body>
 
- <div class="top-bar" role="banner">
-  <div class="intro">
-    <h1>🎨 Design & 🎵 Music Services</h1>
-    <p>Creative solutions tailored to your brand, sound, and style.</p>
+  <header>
+    <div class="logo-title">🎨 Design & 🎵 Music Services</div>
+    <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
+  </header>
+
+  <div class="main-wrapper">
+    <!-- Intro Section -->
+    <div class="intro-box">
+      <h1>Creative Services Tailored for You</h1>
+      <p>We specialize in delivering design and music solutions that match your vision.</p>
+    </div>
+
+    <div class="grid-section">
+      <!-- Services List -->
+      <section class="card" aria-labelledby="services-heading">
+        <h2 id="services-heading">What We Offer</h2>
+        <div class="service-item">
+          <h3>Graphic Design</h3>
+          <p>Logos, posters, social media kits, brand identity, and more.</p>
+        </div>
+        <div class="service-item">
+          <h3>Music Production</h3>
+          <p>Beat-making, mixing, mastering, and vocal editing.</p>
+        </div>
+        <div class="service-item">
+          <h3>Custom Projects</h3>
+          <p>Send us your creative idea and we’ll bring it to life.</p>
+        </div>
+      </section>
+
+      <!-- Form Section -->
+      <section class="card" aria-labelledby="request-service-heading">
+        <h2 id="request-service-heading">Request a Service</h2>
+        <form id="service-contact-form" novalidate aria-describedby="form-error-message" aria-live="polite">
+          <input type="text" name="name" placeholder="Your Full Name" required aria-required="true" />
+          <input type="email" name="email" placeholder="Your Email Address" required aria-required="true" />
+          <input type="tel" name="phone" placeholder="Phone Number (optional)" pattern="[\+]?[0-9\s\-]{7,15}" title="Enter a valid phone number" />
+
+          <label for="service-select" class="visually-hidden">Select a service</label>
+          <select id="service-select" name="service" required aria-required="true">
+            <option value="" disabled selected>Select a service</option>
+            <option value="Graphic Design">Graphic Design</option>
+            <option value="Music Production">Music Production</option>
+            <option value="Custom Project">Custom Project</option>
+          </select>
+
+          <textarea name="message" placeholder="Describe your idea or ask us a question" rows="5" required aria-required="true"></textarea>
+          <div id="form-error-message" role="alert"></div>
+          <button type="submit">Send Request</button>
+        </form>
+      </section>
+    </div>
   </div>
-  <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
-</div>
 
-
-  <main class="container" role="main">
-    <section class="services" aria-labelledby="services-heading">
-      <h2 id="services-heading">What We Offer</h2>
-      <article class="service-item" tabindex="0" aria-label="Graphic Design services">
-        <h3>Graphic Design</h3>
-        <p>Logos, posters, social media kits, brand identity, and more.</p>
-      </article>
-      <article class="service-item" tabindex="0" aria-label="Music Production services">
-        <h3>Music Production</h3>
-        <p>Beat-making, mixing, mastering, and vocal editing.</p>
-      </article>
-      <article class="service-item" tabindex="0" aria-label="Custom Projects">
-        <h3>Custom Projects</h3>
-        <p>Send us your creative idea and we’ll bring it to life.</p>
-      </article>
-    </section>
-
-    <section class="form-container" aria-labelledby="request-service-heading">
-      <h2 id="request-service-heading">Request a Service</h2>
-      <form id="service-contact-form" novalidate aria-describedby="form-error-message" aria-live="polite">
-        <input type="text" name="name" placeholder="Your Full Name" required aria-required="true" aria-label="Full Name" />
-        <input type="email" name="email" placeholder="Your Email Address" required aria-required="true" aria-label="Email Address" />
-        <input type="tel" name="phone" placeholder="Phone Number (optional)" aria-label="Phone Number" pattern="[\+]?[0-9\s\-]{7,15}" title="Enter a valid phone number" />
-        <label for="service-select" class="visually-hidden">Select a service</label>
-        <select id="service-select" name="service" required aria-required="true" aria-label="Select a service">
-          <option value="" disabled selected>Select a service</option>
-          <option value="Graphic Design">Graphic Design</option>
-          <option value="Music Production">Music Production</option>
-          <option value="Custom Project">Custom Project</option>
-        </select>
-        <textarea name="message" placeholder="Describe your idea or ask us a question" rows="5" required aria-required="true" aria-label="Message"></textarea>
-        <div id="form-error-message" role="alert"></div>
-        <button type="submit">Send Request</button>
-      </form>
-    </section>
-  </main>
-<script>
-  document.querySelector('.top-bar button')?.addEventListener('click', () => {
-    window.location.href = 'user-dashboard.html';
-  });
-</script>
-
-  <!-- Unified, clean JS loading -->
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
