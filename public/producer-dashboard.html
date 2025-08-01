@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Producer Dashboard - NEXA East Hub</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      padding: 2rem;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    }
+
+    h2, h3 {
+      color: #2563eb;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background-color: #e0ecff;
+      color: #1e3a8a;
+    }
+
+    tr:hover {
+      background-color: #f9fafb;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .actions button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+    }
+
+    .preview-btn { background-color: #3b82f6; }
+    .upload-btn { background-color: #10b981; }
+    .complete-btn { background-color: #f59e0b; }
+
+    .upload-section, .history-section {
+      margin-top: 2rem;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 1rem;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+    }
+
+    input[type="file"] {
+      margin-top: 0.5rem;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+    }
+
+    audio {
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+
+    .notification {
+      padding: 1rem;
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .history-table th {
+      background: #fef9c3;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Music Producer Admin Dashboard</h2>
+
+    <!-- Orders Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Order Type</th>
+          <th>Requirements</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Sam Dlamini</td>
+          <td>Beat Production</td>
+          <td>Hip-hop, 2min, dark vibe</td>
+          <td>
+            <select>
+              <option>In Progress</option>
+              <option>Preview Sent</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
+          </td>
+          <td class="actions">
+            <button class="preview-btn">Send Preview</button>
+            <button class="upload-btn">Upload File</button>
+            <button class="complete-btn">Mark Complete</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Lebo X</td>
+          <td>Mixing & Mastering</td>
+          <td>3 vocal stems, Afro-pop</td>
+          <td>
+            <select>
+              <option>Pending</option>
+              <option>Preview Sent</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
+          </td>
+          <td class="actions">
+            <button class="preview-btn">Send Preview</button>
+            <button class="upload-btn">Upload File</button>
+            <button class="complete-btn">Mark Complete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Upload Section -->
+    <div class="upload-section">
+      <h3>Upload Music File</h3>
+      <label for="client-name">Client Name:</label>
+      <input type="text" id="client-name" placeholder="e.g., Sam Dlamini" />
+
+      <label for="upload">Choose File:</label>
+      <input type="file" id="upload" accept=".mp3, .wav, .zip" />
+      <p class="note">Accepted formats: MP3, WAV, ZIP</p>
+
+      <label for="audio-preview">Audio Preview (optional):</label>
+      <audio controls id="audio-preview"></audio>
+
+      <button class="upload-btn" style="margin-top: 1rem;" onclick="uploadFile()">Upload</button>
+      <div class="notification" id="notify">✅ File uploaded successfully!</div>
+    </div>
+
+    <!-- Upload History Section -->
+    <div class="history-section">
+      <h3>Upload History</h3>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>File Name</th>
+            <th>Date Uploaded</th>
+          </tr>
+        </thead>
+        <tbody id="history-body">
+          <!-- JS will populate -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="musicUploads">
+  <!-- Music uploads will appear here -->
+</div>
+
+<input type="hidden" name="role" value="music-admin" />
+    <script src="/socket.io/socket.io.js"></script>
+  <script>
+    function uploadFile() {
+      const name = document.getElementById("client-name").value.trim();
+      const fileInput = document.getElementById("upload");
+      const file = fileInput.files[0];
+
+      if (!name || !file) {
+        alert("Please enter client name and choose a file.");
+        return;
+      }
+
+      // Show notification
+      const notify = document.getElementById("notify");
+      notify.style.display = "block";
+      setTimeout(() => notify.style.display = "none", 3000);
+
+      // Preview audio
+      const audio = document.getElementById("audio-preview");
+      if (file.type.startsWith("audio")) {
+        const fileURL = URL.createObjectURL(file);
+        audio.src = fileURL;
+        audio.style.display = "block";
+      }
+
+      // Append to history
+      const tbody = document.getElementById("history-body");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${name}</td>
+        <td>${file.name}</td>
+        <td>${new Date().toLocaleDateString()}</td>
+      `;
+      tbody.appendChild(row);
+
+      // Reset fields
+      fileInput.value = "";
+      document.getElementById("client-name").value = "";
+    }
+  </script>
+
+</body>
+</html>
