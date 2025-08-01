@@ -4,55 +4,71 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contact Us - NEXA East Hub</title>
-  <link rel="stylesheet" href="stylesforms.css" />
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #2563eb, #06b6d4);
-      margin: 0;
-      padding: 0;
+      color: #333;
     }
 
-    .top-bar {
+    header {
+      background-color: #ffffff;
+      padding: 1rem 2rem;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      padding: 1rem;
-      background-color: #fff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #2563eb;
     }
 
     .btn {
-      display: inline-block;
-      text-decoration: none;
+      background-color: #2563eb;
       color: white;
-      background-color: #0078d4;
-      padding: 12px 24px;
+      padding: 10px 20px;
+      border: none;
       border-radius: 6px;
-      font-size: 16px;
-      font-weight: 500;
-      transition: background-color 0.3s ease, transform 0.2s ease;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: background 0.3s ease;
     }
 
     .btn:hover {
-      background-color: #005a9e;
-      transform: scale(1.05);
+      background-color: #1e40af;
     }
 
-    .contact {
-      max-width: 600px;
+    .container {
+      display: grid;
+      grid-template-columns: 1fr;
+      max-width: 1200px;
       margin: 2rem auto;
       background: white;
-      padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
 
-    .contact h2 {
+    @media (min-width: 768px) {
+      .container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .form-section {
+      padding: 2rem;
+    }
+
+    .form-section h2 {
       color: #2563eb;
       margin-bottom: 1.5rem;
       text-align: center;
@@ -85,68 +101,87 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s ease;
       font-size: 1rem;
+      transition: background 0.3s ease;
     }
 
-    .contact-form button:hover:not(:disabled) {
+    .contact-form button:hover {
       background: #1e3a8a;
     }
 
-    .contact-form button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .info-section {
+      background: #eff6ff;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
     }
 
-    /* Responsive layout */
-    @media (max-width: 600px) {
-      .contact {
-        margin: 1rem;
-        padding: 1.5rem;
-      }
-
-      .btn {
-        font-size: 14px;
-        padding: 10px 16px;
-      }
+    .info-section h3 {
+      color: #1e3a8a;
+      margin-bottom: 1rem;
     }
+
+    .info-section p {
+      margin-bottom: 0.8rem;
+      font-size: 1rem;
+      color: #444;
+    }
+
+    .info-section img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+
   </style>
 </head>
 <body>
 
-  <!-- Dashboard Button Section -->
-  <div class="top-bar">
-    <a href="user-dashboard.html" class="btn" role="button" aria-label="Go to My Dashboard">My Dashboard</a>
-  </div>
+  <header>
+    <div class="logo">NEXA East Hub</div>
+    <a href="user-dashboard.html" class="btn">My Dashboard</a>
+  </header>
 
-  <!-- Contact Form Section -->
-  <div class="contact">
-    <h2>Contact Us</h2>
-    <form class="contact-form" id="contactForm" novalidate>
-      <label for="name">Name</label>
-      <input type="text" id="name" name="name" placeholder="Your Name" required />
+  <main class="container">
+    <!-- Contact Form Section -->
+    <div class="form-section">
+      <h2>Contact Us</h2>
+      <form class="contact-form" id="contactForm" novalidate>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Your Name" required />
 
-      <label for="email">Email Address</label>
-      <input type="email" id="email" name="email" placeholder="Email Address" required />
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="Email Address" required />
 
-      <label for="phone">Phone Number (optional)</label>
-      <input type="tel" id="phone" name="phone" placeholder="Phone Number (optional)" />
+        <label for="phone">Phone Number (optional)</label>
+        <input type="tel" id="phone" name="phone" placeholder="Phone Number (optional)" />
 
-      <label for="service">Service</label>
-      <select name="service" id="service" required>
-        <option value="" disabled selected>Select a service</option>
-        <option value="General Inquiry">General Inquiry</option>
-        <option value="Design Service">Design Service</option>
-        <option value="Music Production">Music Production</option>
-        <option value="AI Tools">AI Tools</option>
-      </select>
+        <label for="service">Service</label>
+        <select name="service" id="service" required>
+          <option value="" disabled selected>Select a service</option>
+          <option value="General Inquiry">General Inquiry</option>
+          <option value="Design Service">Design Service</option>
+          <option value="Music Production">Music Production</option>
+          <option value="AI Tools">AI Tools</option>
+        </select>
 
-      <label for="message">Message</label>
-      <textarea id="message" name="message" placeholder="Your Message" rows="5" required></textarea>
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Your Message" rows="5" required></textarea>
 
-      <button type="submit">Send Message</button>
-    </form>
-  </div>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+
+    <!-- Info/Visual Section -->
+    <div class="info-section">
+      <h3>Let's Connect</h3>
+      <p>We’re here to answer your questions and help you get started with our services.</p>
+      <p>Reach out for collaboration, inquiries, or just to say hello!</p>
+      <img src="https://source.unsplash.com/featured/?contact,technology" alt="Contact illustration" />
+    </div>
+  </main>
 
   <script src="script.js" defer></script>
 </body>
