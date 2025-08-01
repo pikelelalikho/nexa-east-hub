@@ -825,22 +825,85 @@ p  { font-size: 1rem; }
   }
 }
 
-.testimonial-item {
-  border: 1px solid #ddd;
-  background: #fafafa;
-  padding: 15px;
-  margin-bottom: 1em;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.testimonial-item {
-  transition: all 0.3s ease-in-out;
-}
-.testimonial-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.testimonials-container.professional {
+  max-width: 700px;
+  margin: auto;
+  padding: 2rem 1rem;
+  text-align: left;
+  background-color: #fff;
 }
 
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #1f2937;
+}
+
+.section-subtitle {
+  font-size: 15px;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.testimonial-list {
+  margin-bottom: 2rem;
+}
+
+.testimonial-item {
+  padding-left: 1rem;
+  border-left: 4px solid #d97706;
+  margin-bottom: 1.25rem;
+}
+
+.testimonial-text {
+  font-style: italic;
+  margin-bottom: 0.4rem;
+  color: #374151;
+}
+
+.testimonial-author {
+  font-weight: bold;
+  color: #111827;
+}
+
+.testimonial-form-minimal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.testimonial-form-minimal label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.testimonial-form-minimal textarea,
+.testimonial-form-minimal input {
+  padding: 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.btn-submit {
+  background: #d97706;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+  transition: background 0.3s ease;
+}
+
+.btn-submit:hover {
+  background: #b45309;
+}
 /* =================================================================
    ADMIN DASHBOARD STYLES
    ================================================================= */
