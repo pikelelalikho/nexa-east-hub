@@ -1,4 +1,3 @@
-<!-- File: public/my-orders.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,62 +13,140 @@
       padding: 2rem 1rem;
       color: #1e293b;
     }
-    section.contact {
-      max-width: 600px;
-      margin: 2rem auto;
+    .container {
+      max-width: 800px;
+      margin: auto;
       background: white;
       border-radius: 12px;
       padding: 2rem;
       box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      text-align: center;
     }
     h2 {
       color: #2563eb;
       margin-bottom: 1rem;
-      font-weight: 700;
     }
-    p {
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      color: #475569;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
     }
-    a.btn {
-      display: inline-block;
-      padding: 0.75rem 1.5rem;
-      background-color: #2563eb;
-      color: white;
-      font-weight: 600;
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background-color: #f1f5f9;
+    }
+    .status {
+      padding: 4px 10px;
       border-radius: 8px;
-      text-decoration: none;
-      transition: background-color 0.3s ease;
-      -webkit-user-select: none;
-      user-select: none;
+      font-weight: 600;
     }
-    a.btn:hover,
-    a.btn:focus {
-      background-color: #1e40af;
-      outline: none;
+    .pending { background-color: #fde68a; color: #92400e; }
+    .delivered { background-color: #a7f3d0; color: #065f46; }
+    .received { background-color: #c7d2fe; color: #3730a3; }
+    .btn {
+      padding: 6px 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
-  <section class="contact" aria-label="My Orders section">
-    <h2>📁 My Orders</h2>
-    <p><em>This feature is coming soon!</em></p>
-    <p>Here you'll be able to track your design, music, and AI tool requests.</p>
+  <div class="container">
+    <h2>🎧 My Orders</h2>
+    <p>Track your music, design, and AI tool orders below:</p>
 
-    <a href="user-dashboard.html" class="btn" role="button" aria-label="Back to Dashboard">← Back to Dashboard</a>
-  </section>
-  <script src="script.js"></script>
+    <table>
+      <thead>
+        <tr>
+          <th>Order Type</th>
+          <th>Details</th>
+          <th>Status</th>
+          <th>Download</th>
+        </tr>
+      </thead>
+      <tbody id="orderTableBody">
+        <!-- Orders will be dynamically loaded here -->
+      </tbody>
+    </table>
+
+    <br/>
+    <a href="user-dashboard.html" class="btn">← Back to Dashboard</a>
+  </div>
+  <div id="musicUploads">
+  <!-- Music uploads will appear here -->
+</div>
+
+
   <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
+  <script>
+    const socket = io();
+    const orderTableBody = document.getElementById('orderTableBody');
 
-  socket.on('new_log', (data) => {
-    console.log('📥 New log received:', data);
-    // Optionally update the UI with the log
-  });
-</script>
+    // Dummy placeholder orders (replace with real DB API call)
+    const orders = [
+      {
+        type: 'Music Beat',
+        details: 'Afro-house beat with vocals',
+        status: 'Pending',
+        file: null
+      },
+      {
+        type: 'Logo Design',
+        details: 'Modern logo for clothing brand',
+        status: 'Delivered',
+        file: 'https://example.com/download/logo.zip'
+      },
+      {
+        type: 'Custom Track',
+        details: 'Intro + jingle',
+        status: 'Received',
+        file: 'https://example.com/music/intro.mp3'
+      }
+    ];
 
+    function renderOrders() {
+      orderTableBody.innerHTML = '';
+      orders.forEach(order => {
+        const tr = document.createElement('tr');
+
+        const statusClass = {
+          'Pending': 'pending',
+          'Delivered': 'delivered',
+          'Received': 'received'
+        }[order.status] || 'pending';
+
+        tr.innerHTML = `
+          <td>${order.type}</td>
+          <td>${order.details}</td>
+          <td><span class="status ${statusClass}">${order.status}</span></td>
+          <td>
+            ${order.file ? `<a href="${order.file}" class="btn" target="_blank">Download</a>` : '<button class="btn" disabled>Waiting</button>'}
+          </td>
+        `;
+        orderTableBody.appendChild(tr);
+      });
+    }
+
+    // Live updates from server
+    socket.on('order_update', (updatedOrder) => {
+      // Logic to update existing orders by ID (not shown here)
+      console.log('Order updated', updatedOrder);
+      // After update, re-render
+      renderOrders();
+    });
+
+    renderOrders();
+  </script>
 </body>
 </html>
