@@ -3091,5 +3091,145 @@
     "details": "Socket.IO connection established",
     "user": "pikelelalikho@gmail.com",
     "id": 1753970116773.4685
+  },
+  {
+    "eventType": "admin_reset",
+    "details": "Admin password reset on server startup",
+    "user": "system",
+    "timestamp": 1756379540938,
+    "id": 1756379540938.2214
+  },
+  {
+    "eventType": "server_startup",
+    "details": "Server started on port 3000",
+    "user": "system",
+    "timestamp": 1756379540940,
+    "id": 1756379540940.6777
+  },
+  {
+    "timestamp": 1756379560892,
+    "eventType": "page_visit",
+    "details": "index.html",
+    "user": "anonymous",
+    "id": 1756379560894.0518
+  },
+  {
+    "timestamp": 1756379561234,
+    "eventType": "service_worker_registered",
+    "details": "Service worker registration successful",
+    "user": "anonymous",
+    "id": 1756379561234.3848
+  },
+  {
+    "eventType": "404_error",
+    "details": "404 - GET /favicon.ico",
+    "user": "anonymous",
+    "timestamp": 1756379561800,
+    "id": 1756379561800.524
+  },
+  {
+    "timestamp": 1756379561820,
+    "eventType": "page_visit",
+    "details": "Visited page: index.html",
+    "user": "anonymous",
+    "id": 1756379561821.8545
+  },
+  {
+    "timestamp": 1756379563060,
+    "eventType": "socket_connected",
+    "details": "Socket.IO connection established",
+    "user": "anonymous",
+    "id": 1756379563061.3809
+  },
+  {
+    "timestamp": 1756379570289,
+    "eventType": "session_end",
+    "details": "Session duration: 9s",
+    "user": "anonymous",
+    "id": 1756379570290.9646
+  },
+  {
+    "timestamp": 1756379580585,
+    "eventType": "page_visit",
+    "details": "Visited page: signup.html",
+    "user": "anonymous",
+    "id": 1756379580585.6245
+  },
+  {
+    "timestamp": 1756379580643,
+    "eventType": "service_worker_registered",
+    "details": "Service worker registration successful",
+    "user": "anonymous",
+    "id": 1756379580644.235
+  },
+  {
+    "timestamp": 1756379581269,
+    "eventType": "socket_connected",
+    "details": "Socket.IO connection established",
+    "user": "anonymous",
+    "id": 1756379581270.287
+  },
+  {
+    "timestamp": 1756379582166,
+    "eventType": "session_end",
+    "details": "Session duration: 2s",
+    "user": "anonymous",
+    "id": 1756379582167.2148
+  },
+  {
+    "timestamp": 1756379584389,
+    "eventType": "page_visit",
+    "details": "Visited page: login.html",
+    "user": "anonymous",
+    "id": 1756379584390.4028
+  },
+  {
+    "timestamp": 1756379584980,
+    "eventType": "socket_connected",
+    "details": "Socket.IO connection established",
+    "user": "anonymous",
+    "id": 1756379584981.8076
+  },
+  {
+    "timestamp": 1756379585092,
+    "eventType": "service_worker_registered",
+    "details": "Service worker registration successful",
+    "user": "anonymous",
+    "id": 1756379585092.1943
+  },
+  {
+    "eventType": "login_failed",
+    "details": "Invalid password for pikelelalikho@gmail.com",
+    "user": "pikelelalikho@gmail.com",
+    "timestamp": 1756379910108,
+    "id": 1756379910108.9102
+  },
+  {
+    "timestamp": 1756379915015,
+    "eventType": "login_failed",
+    "details": "Login failed for: pikelelalikho@gmail.com",
+    "user": "anonymous",
+    "id": 1756379915015.6948
+  },
+  {
+    "eventType": "login_failed",
+    "details": "Invalid password for lilpikelela@gmail.com",
+    "user": "lilpikelela@gmail.com",
+    "timestamp": 1756379920777,
+    "id": 1756379920777.9668
+  },
+  {
+    "timestamp": 1756379923370,
+    "eventType": "login_failed",
+    "details": "Login failed for: lilpikelela@gmail.com",
+    "user": "anonymous",
+    "id": 1756379923371.556
+  },
+  {
+    "eventType": "login_success",
+    "details": "User logged in successfully",
+    "user": "lilpikelela@gmail.com",
+    "timestamp": 1756379933073,
+    "id": 1756379933073.1418
   }
 ]

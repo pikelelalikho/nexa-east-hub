@@ -3,11 +3,11 @@
     "id": 1753796242938,
     "name": "Nexa Admin",
     "email": "pikelelalikho@gmail.com",
-    "password": "$2b$12$7xFxGHIb5NI3vX6lbYsaMudjGA1KJIppkk.cKHCuy7sHsT.clAIGm",
+    "password": "$2b$12$E8VviRPdE5YiunUo3PdgpuMU8Xvuhq0f4i6PezfsMHVqM46aBZobK",
     "role": "admin",
     "createdAt": "2025-07-29T13:37:22.938Z",
     "isActive": true,
-    "updatedAt": "2025-07-31T13:32:34.352Z"
+    "updatedAt": "2025-08-28T11:12:20.936Z"
   },
   {
     "id": 1751632494661,
