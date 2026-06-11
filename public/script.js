@@ -12,6 +12,23 @@ function sendLog(eventType, details = '') {
     }).catch(err => console.error('Logging error:', err));
 }
 
+function getSocket() {
+    if (typeof window === 'undefined' || typeof window.io !== 'function') {
+        return null;
+    }
+
+    if (!window.nexaSocket) {
+        window.nexaSocket = window.io({
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000
+        });
+    }
+
+    return window.nexaSocket;
+}
+
 // ---------- Email & Phone Validators ----------
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -75,7 +92,7 @@ class AdminDashboard {
         this.socket = null;
         this.chart = null;
         this.isDarkMode = localStorage.getItem('adminDarkMode') === 'true';
-        
+
         this.init();
     }
 
@@ -92,7 +109,7 @@ class AdminDashboard {
     checkAdminAuth() {
         const adminToken = localStorage.getItem('adminToken');
         const userEmail = localStorage.getItem('userEmail');
-        
+
         if (!adminToken || !userEmail) {
             alert('Admin access required. Please log in as admin.');
             window.location.href = 'login.html';
@@ -106,13 +123,13 @@ class AdminDashboard {
             connectionStatus: document.getElementById('connectionStatus'),
             statusText: document.getElementById('statusText'),
             adminInfo: document.getElementById('adminInfo'),
-            
+
             // Stats cards
             totalLogs: document.getElementById('totalLogs'),
             successfulLogins: document.getElementById('successfulLogins'),
             failedLogins: document.getElementById('failedLogins'),
             contactMessages: document.getElementById('contactMessages'),
-            
+
             // Controls
             filterType: document.getElementById('filterType'),
             searchInput: document.getElementById('searchInput'),
@@ -121,16 +138,16 @@ class AdminDashboard {
             exportXLSXBtn: document.getElementById('exportXLSXBtn'),
             exportPDFBtn: document.getElementById('exportPDFBtn'),
             darkModeToggle: document.getElementById('darkModeToggle'),
-            
+
             // Table and pagination
             logTableBody: document.getElementById('logTableBody'),
             prevPageBtn: document.getElementById('prevPageBtn'),
             nextPageBtn: document.getElementById('nextPageBtn'),
             pageInfo: document.getElementById('pageInfo'),
-            
+
             // Chart
             activityChart: document.getElementById('activityChart'),
-            
+
             // Logout
             logoutBtn: document.getElementById('logoutBtn')
         };
@@ -147,7 +164,7 @@ class AdminDashboard {
         if (this.elements.filterType) {
             this.elements.filterType.addEventListener('change', () => this.filterLogs());
         }
-        
+
         if (this.elements.searchInput) {
             this.elements.searchInput.addEventListener('input', this.debounce(() => this.filterLogs(), 300));
         }
@@ -190,8 +207,12 @@ class AdminDashboard {
     setupSocketConnection() {
         if (typeof io !== 'undefined') {
             try {
-                this.socket = io();
-                
+                this.socket = getSocket();
+                if (!this.socket) {
+                    this.updateConnectionStatus('Socket.IO not available', 'warning');
+                    return;
+                }
+
                 this.socket.on('connect', () => {
                     this.updateConnectionStatus('Connected', 'success');
                     console.log('Admin dashboard connected to server');
@@ -248,7 +269,7 @@ class AdminDashboard {
             this.filterLogs();
             this.updateStats();
             this.updateChart();
-            
+
             sendLog('admin_logs_loaded', `Loaded ${this.logs.length} log entries`);
         } catch (error) {
             console.error('Error loading logs:', error);
@@ -263,15 +284,15 @@ class AdminDashboard {
         const sampleLogs = [];
         const eventTypes = ['login_success', 'login_failed', 'signup_success', 'contact_message', 'page_visit'];
         const users = ['john@example.com', 'jane@example.com', 'admin@nexaeast.com', 'user@test.com'];
-        
+
         for (let i = 0; i < 50; i++) {
             const now = new Date();
             const randomHours = Math.floor(Math.random() * 24 * 7); // Last 7 days
             const timestamp = new Date(now.getTime() - randomHours * 60 * 60 * 1000);
-            
+
             const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
             const user = users[Math.floor(Math.random() * users.length)];
-            
+
             sampleLogs.push({
                 id: i + 1,
                 timestamp: timestamp.toISOString(),
@@ -281,7 +302,7 @@ class AdminDashboard {
                 ip: `192.168.1.${Math.floor(Math.random() * 255)}`
             });
         }
-        
+
         return sampleLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     }
 
@@ -302,11 +323,11 @@ class AdminDashboard {
 
         this.filteredLogs = this.logs.filter(log => {
             const matchesType = filterType === 'all' || log.eventType === filterType;
-            const matchesSearch = !searchTerm || 
+            const matchesSearch = !searchTerm ||
                 log.eventType.toLowerCase().includes(searchTerm) ||
                 log.details.toLowerCase().includes(searchTerm) ||
                 log.user.toLowerCase().includes(searchTerm);
-            
+
             return matchesType && matchesSearch;
         });
 
@@ -338,10 +359,10 @@ class AdminDashboard {
         logsToShow.forEach(log => {
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
-            
+
             const timestamp = new Date(log.timestamp);
             const formattedTime = timestamp.toLocaleString();
-            
+
             row.innerHTML = `
                 <td class="px-4 py-2 text-sm">${formattedTime}</td>
                 <td class="px-4 py-2">
@@ -352,7 +373,7 @@ class AdminDashboard {
                 <td class="px-4 py-2 text-sm">${this.escapeHtml(log.details)}</td>
                 <td class="px-4 py-2 text-sm">${this.escapeHtml(log.user)}</td>
             `;
-            
+
             this.elements.logTableBody.appendChild(row);
         });
     }
@@ -403,7 +424,7 @@ class AdminDashboard {
         }
 
         const ctx = this.elements.activityChart.getContext('2d');
-        
+
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -469,7 +490,7 @@ class AdminDashboard {
         this.filterLogs();
         this.updateStats();
         this.updateChart();
-        
+
         // Show notification for new log
         this.showNotification('New activity logged', 'info');
     }
@@ -482,7 +503,7 @@ class AdminDashboard {
             type === 'warning' ? 'bg-yellow-500' :
             'bg-blue-500'
         } text-white`;
-        
+
         notification.textContent = message;
         document.body.appendChild(notification);
 
@@ -493,15 +514,15 @@ class AdminDashboard {
 
     updatePagination() {
         const totalPages = Math.ceil(this.filteredLogs.length / this.itemsPerPage);
-        
+
         if (this.elements.pageInfo) {
             this.elements.pageInfo.textContent = `Page ${this.currentPage} of ${totalPages} (${this.filteredLogs.length} total)`;
         }
-        
+
         if (this.elements.prevPageBtn) {
             this.elements.prevPageBtn.disabled = this.currentPage <= 1;
         }
-        
+
         if (this.elements.nextPageBtn) {
             this.elements.nextPageBtn.disabled = this.currentPage >= totalPages;
         }
@@ -570,7 +591,7 @@ class AdminDashboard {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Logs');
         XLSX.writeFile(wb, 'admin-logs.xlsx');
-        
+
         sendLog('admin_export_excel', `Exported ${this.filteredLogs.length} logs to Excel`);
     }
 
@@ -591,7 +612,7 @@ class AdminDashboard {
 
         doc.setFontSize(18);
         doc.text('NEXA East Hub - Admin Logs', 14, 22);
-        
+
         doc.setFontSize(12);
         doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 32);
         doc.text(`Total Records: ${this.filteredLogs.length}`, 14, 40);
@@ -655,7 +676,7 @@ class AdminDashboard {
             localStorage.removeItem('adminToken');
             sendLog('admin_logout', 'Admin logged out');
             alert('Logged out successfully.');
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
     }
 
@@ -679,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize Admin Dashboard if on admin page
-    if (window.location.pathname.includes('admin-dashboard.html') || 
+    if (window.location.pathname.includes('admin-dashboard.html') ||
         document.getElementById('logTable')) {
         window.adminDashboard = new AdminDashboard();
     }
@@ -917,7 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.removeItem('adminToken');
                 sendLog('logout', 'User logged out');
                 alert('Logged out successfully.');
-                window.location.href = 'index.html';
+                window.location.href = '/';
             });
         }
     });
@@ -970,6 +991,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const navMenu = document.querySelector('.nav-menu');
     if (mobileMenuToggle && navMenu) {
         mobileMenuToggle.addEventListener('click', () => {
+            const expanded = mobileMenuToggle.getAttribute('aria-expanded') === 'true';
+            mobileMenuToggle.setAttribute('aria-expanded', String(!expanded));
             navMenu.classList.toggle('active');
             sendLog('mobile_menu_toggle', `Menu toggled: ${navMenu.classList.contains('active')}`);
         });
@@ -1082,9 +1105,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ---------- Initialize Socket.IO if available ----------
-    if (typeof io !== 'undefined') {
-        const socket = io();
-        
+    const socket = getSocket();
+    if (socket) {
+
         socket.on('connect', () => {
             console.log('Connected to server');
             sendLog('socket_connected', 'Socket.IO connection established');
@@ -1098,6 +1121,93 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('new_log', (logEntry) => {
             console.log('New log received:', logEntry);
             // You can handle real-time log updates here if needed
+        });
+    }
+
+    // ---------- Web Page Auth Links ----------
+    const authLinksContainer = document.getElementById('authLinks');
+    if (authLinksContainer) {
+        let loggedInUser = null;
+        try {
+            loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || 'null');
+        } catch (error) {
+            localStorage.removeItem('loggedInUser');
+        }
+
+        const userName = loggedInUser?.name || localStorage.getItem('userName');
+        const isAdmin = Boolean(localStorage.getItem('adminToken'));
+        const dashboardHref = isAdmin ? '/admin-dashboard.html' : '/user-dashboard.html';
+
+        if (userName) {
+            authLinksContainer.innerHTML = `
+                <button id="profileToggle" class="profile-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="profileDropdown">
+                  <i class="fas fa-user-circle" aria-hidden="true"></i>
+                  <span>${userName}</span>
+                </button>
+                <div id="profileDropdown" class="profile-dropdown" role="menu">
+                  <a href="${dashboardHref}" class="dropdown-item" role="menuitem">Dashboard</a>
+                  <a href="/profile.html" class="dropdown-item" role="menuitem">Profile</a>
+                  <button class="dropdown-item logout-btn" type="button" role="menuitem">Logout</button>
+                </div>
+            `;
+        } else {
+            authLinksContainer.innerHTML = `
+                <button id="profileToggle" class="profile-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="profileDropdown">
+                  <i class="fas fa-user-circle" aria-hidden="true"></i>
+                </button>
+                <div id="profileDropdown" class="profile-dropdown" role="menu">
+                  <a href="login.html" class="dropdown-item" role="menuitem">Login</a>
+                  <a href="signup.html" class="dropdown-item" role="menuitem">Sign Up</a>
+                </div>
+            `;
+        }
+
+        const profileToggle = document.getElementById('profileToggle');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        function closeProfileDropdown() {
+            profileDropdown?.classList.remove('open');
+            profileToggle?.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleProfileDropdown() {
+            if (!profileDropdown || !profileToggle) return;
+            const isOpen = profileDropdown.classList.toggle('open');
+            profileToggle.setAttribute('aria-expanded', String(isOpen));
+        }
+
+        profileToggle?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleProfileDropdown();
+        });
+
+        profileToggle?.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeProfileDropdown();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!authLinksContainer.contains(event.target)) {
+                closeProfileDropdown();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeProfileDropdown();
+            }
+        });
+
+        authLinksContainer.querySelector('.logout-btn')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            localStorage.removeItem('loggedInUser');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('adminToken');
+            sendLog('logout', 'User logged out');
+            window.location.href = '/';
         });
     }
 
@@ -1121,11 +1231,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggle) {
         const currentTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', currentTheme);
-        
+
         themeToggle.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             sendLog('theme_toggle', `Theme changed to: ${newTheme}`);
@@ -1191,50 +1301,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-const form = document.getElementById('testimonialForm');
-const successMessage = document.getElementById('successMessage');
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  const testimonial = {
-    name: form.customerName.value.trim(),
-    service: form.serviceUsed.value,
-    rating: form.rating.value,
-    text: form.testimonialText.value.trim(),
-    date: new Date().toISOString(),
-    // Files are tricky in localStorage; you can save base64 strings if you want to get fancy
-  };
-
-  // Retrieve current testimonials or create array
-  let testimonials = JSON.parse(localStorage.getItem('testimonials') || '[]');
-  testimonials.push(testimonial);
-  localStorage.setItem('testimonials', JSON.stringify(testimonials));
-
-  successMessage.style.display = 'block';
-  form.reset();
-  document.getElementById('imagePreview').innerHTML = '';
-});
-
-  // Mobile toggle
-  const toggle = document.getElementById('mobileMenuToggle');
-  const navMenu = document.getElementById('navMenu');
-
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!expanded));
-      navMenu.classList.toggle('active');
-    });
-  }
-
 // Uncomment to use:
 // fetchAdminLogs();
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-    .catch(err => console.error('❌ Service Worker registration failed:', err));
-}
 
 
 

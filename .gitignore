@@ -1,1 +1,8 @@
 node_modules
+
+# Local environment and secrets
+.env
+.env.*
+
+# Runtime logs
+logs/*.log

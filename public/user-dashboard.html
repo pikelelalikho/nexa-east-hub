@@ -3,24 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Dashboard - NEXA East Hub</title>
+  <title>Client Dashboard - NEXA East Hub</title>
   <style>
     :root {
-      --bg: #f2f6fc;
-      --text: #1f2937;
-      --card-bg: #ffffff;
-      --accent: #2563eb;
-      --hover: #1e40af;
-      --alert: #ef4444;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --panel-soft: #eef4ff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e2ef;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
     }
 
     [data-theme="dark"] {
-      --bg: #111827;
-      --text: #f3f4f6;
-      --card-bg: #1f2937;
-      --accent: #3b82f6;
-      --hover: #60a5fa;
-      --alert: #dc2626;
+      --bg: #0f172a;
+      --panel: #172033;
+      --panel-soft: #1f2a44;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --border: #334155;
+      --shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
     }
 
     * {
@@ -30,239 +37,593 @@
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
-      transition: all 0.3s ease;
     }
 
     header {
-      background-color: var(--card-bg);
-      padding: 1rem 2rem;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .logo {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: var(--accent);
-    }
-
-    .nav-buttons a {
-      background: var(--accent);
-      color: #fff;
-      padding: 10px 18px;
-      margin-left: 1rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: background 0.3s ease;
-    }
-
-    .nav-buttons a:hover {
-      background: var(--hover);
-    }
-
-    .toggle-theme {
-      margin-left: 1rem;
-      background: transparent;
-      border: 2px solid var(--accent);
-      color: var(--accent);
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    main.dashboard {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background: var(--card-bg);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    }
-
-    .dashboard h2 {
-      font-size: 2rem;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-
-    .welcome-msg {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-    }
-
-    .about-section {
-      background: #e0ecff;
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-bottom: 2rem;
-      color: #1e3a8a;
-    }
-
-    .dashboard-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .action-card {
-      background: var(--bg);
-      border: 1px solid #dbeafe;
-      border-left: 5px solid var(--accent);
-      padding: 1.5rem;
-      border-radius: 12px;
-      text-decoration: none;
-      color: var(--text);
-      font-weight: 500;
+    .brand {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      transition: all 0.3s ease;
+      line-height: 1.25;
     }
 
-    .action-card:hover {
-      background: var(--card-bg);
-      transform: translateY(-4px);
+    .brand strong {
+      color: var(--primary);
+      font-size: 1.2rem;
     }
 
-    footer {
-      text-align: center;
-      margin-top: 3rem;
+    .brand span {
+      color: var(--muted);
+      font-size: 0.9rem;
     }
 
-    .footer-links {
+    .nav-actions {
       display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .footer-links a {
-      padding: 0.75rem 1.5rem;
-      background: var(--alert);
-      color: white;
-      border-radius: 30px;
-      font-weight: bold;
+    .nav-actions a,
+    .nav-actions button,
+    .button {
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
       text-decoration: none;
-      transition: background 0.3s ease;
+      font-weight: 700;
     }
 
-    .footer-links a:hover {
-      background: #dc2626;
+    .button.primary,
+    .nav-actions a.primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
     }
 
-    @media (max-width: 600px) {
+    .button.primary:hover,
+    .nav-actions a.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    .hero-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
+      margin-bottom: 0.4rem;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .metrics-grid,
+    .workspace-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .metrics-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 1.5rem;
+    }
+
+    .workspace-grid {
+      grid-template-columns: 1.4fr 1fr;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+    }
+
+    .metric-card {
+      min-height: 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-card span {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.86rem;
+    }
+
+    .metric-card strong {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .section-title {
+      font-size: 1.08rem;
+      margin-bottom: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .panel-stack {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .list-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem;
+      background: var(--panel-soft);
+    }
+
+    .list-item h3 {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .status {
+      display: inline-flex;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-top: 0.5rem;
+      color: #ffffff;
+      background: var(--warning);
+    }
+
+    .status.completed {
+      background: var(--success);
+    }
+
+    .status.cancelled {
+      background: var(--danger);
+    }
+
+    form {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    label {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font: inherit;
+      color: var(--text);
+      background: var(--panel);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .download-link {
+      display: inline-flex;
+      margin-top: 0.6rem;
+      color: var(--primary);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      background: var(--panel-soft);
+    }
+
+    @media (max-width: 900px) {
+      .hero-panel,
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
       header {
+        align-items: flex-start;
         flex-direction: column;
-        gap: 1rem;
-        text-align: center;
       }
 
-      .nav-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
+      .nav-actions {
+        width: 100%;
+        justify-content: flex-start;
       }
 
-      .dashboard-actions {
+      .metrics-grid {
         grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 <body>
-
-  <!-- Header -->
   <header>
-    <div class="logo">NEXA East Hub</div>
-    <div class="nav-buttons">
-      <a href="index.html">Logout</a>
-      <a href="home.html">Home</a>
-      <button class="toggle-theme" onclick="toggleTheme()">🌓 Theme</button>
+    <div class="brand">
+      <strong>NEXA East Hub</strong>
+      <span>Client management workspace</span>
     </div>
+    <nav class="nav-actions" aria-label="Dashboard navigation">
+      <a href="/" class="primary">Home</a>
+      <a href="profile.html">Profile</a>
+      <button type="button" id="themeToggle">Theme</button>
+      <button type="button" id="logoutBtn">Logout</button>
+    </nav>
   </header>
 
-  <!-- Main Dashboard -->
-  <main class="dashboard">
-    <h2 id="greeting">Welcome</h2>
-    <p class="welcome-msg">This is your personal dashboard. From here, you can explore services, submit requests, and access Nexa tools.</p>
-
-    <section class="about-section" aria-label="About NEXA East Hub">
-      <h3>About NEXA East Hub</h3>
-      <p>
-        NEXA East Hub is your one-stop platform for creative design, music production, and AI-powered tools. We are committed to helping you bring your ideas to life with professional services and innovative technology.
-      </p>
+  <main>
+    <section class="hero-panel">
+      <div>
+        <h1 id="greeting">Welcome</h1>
+        <p class="muted">Track your service requests, orders, files, messages, downloads, and feedback in one place.</p>
+      </div>
+      <a href="#newRequest" class="button primary">Request a Service</a>
     </section>
 
-    <!-- Dashboard Action Cards -->
-    <div class="dashboard-actions">
-      <a href="services-music-online.html" class="action-card">
-        <span>🎨</span>
-        View Design & Music Services
-      </a>
-      <a href="contact.html" class="action-card">
-        <span>📩</span>
-        Submit a Service Request
-      </a>
-      <a href="ai-tools.html" class="action-card">
-        <span>🤖</span>
-        Access AI Tools (Resume Builder, Chatbot)
-      </a>
-      <a href="my-orders.html" class="action-card">
-        <span>📁</span>
-        My Orders
-      </a>
-      <a href="profile.html" class="action-card">
-        <span>👤</span>
-        My Profile
-      </a>
-      <a href="activity-log.html" class="action-card">
-        <span>📊</span>
-        Recent Activity
-      </a>
-      <a href="community.html" class="action-card">
-        <span>💬</span>
-        Join Our Community
-      </a>
+    <section class="metrics-grid" aria-label="Dashboard summary">
+      <article class="card metric-card">
+        <span>Open Requests</span>
+        <strong id="metricRequests">0</strong>
+      </article>
+      <article class="card metric-card">
+        <span>Pending Orders</span>
+        <strong id="metricPending">0</strong>
+      </article>
+      <article class="card metric-card">
+        <span>Completed Orders</span>
+        <strong id="metricCompleted">0</strong>
+      </article>
+      <article class="card metric-card">
+        <span>Messages / Updates</span>
+        <strong id="metricMessages">0</strong>
+      </article>
+    </section>
+
+    <div class="workspace-grid">
+      <div class="panel-stack">
+        <section class="card" id="newRequest">
+          <h2 class="section-title">New Service Request</h2>
+          <form id="serviceRequestForm">
+            <div>
+              <label for="service">Service Category</label>
+              <select id="service" name="service" required>
+                <option value="">Choose a service</option>
+                <option>IT Support & Computer Services</option>
+                <option>Digital Skills & Training</option>
+                <option>Business & Automation Solutions</option>
+                <option>Design & Creative Services</option>
+                <option>Online Assistance Services</option>
+                <option>Music Production</option>
+                <option>Music Studio Services</option>
+              </select>
+            </div>
+            <div>
+              <label for="requestMessage">Request Details</label>
+              <textarea id="requestMessage" name="message" placeholder="Tell us what you need help with..." required></textarea>
+            </div>
+            <button type="submit" class="button primary">Submit Request</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">My Requests</h2>
+          <div id="requestsList" class="list"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">My Orders <span class="muted">Order Status</span></h2>
+          <div id="ordersList" class="list"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">Messages / Updates</h2>
+          <div id="messagesList" class="list"></div>
+        </section>
+      </div>
+
+      <aside class="panel-stack">
+        <section class="card">
+          <h2 class="section-title">My Downloads</h2>
+          <div id="downloadsList" class="list"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">Music Files</h2>
+          <div id="musicFilesList" class="list"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">My Uploaded Files</h2>
+          <div id="uploadsList" class="list"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">My Feedback</h2>
+          <form id="dashboardFeedbackForm">
+            <textarea id="dashboardFeedback" name="feedback" placeholder="Share feedback about your service experience..." required></textarea>
+            <button type="submit" class="button primary">Submit Feedback</button>
+          </form>
+          <div id="feedbackList" class="list" style="margin-top: 1rem;"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">My Profile</h2>
+          <div id="profileSummary" class="list"></div>
+        </section>
+      </aside>
     </div>
   </main>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
-    socket.on('connect', () => {
-      console.log('✅ Connected to socket server');
-    });
-    socket.on('new_log', (entry) => {
-      console.log('📝 New log received:', entry);
+    const token = localStorage.getItem('authToken') || '';
+    const userName = localStorage.getItem('userName') || 'Client';
+    const userEmail = localStorage.getItem('userEmail') || '';
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
+    document.getElementById('greeting').textContent = `Welcome, ${userName}`;
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+
+    const socket = typeof io === 'function' ? io() : null;
+    socket?.on('new_log', () => loadWorkspace());
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
     });
 
-    // Personalized greeting
-    const user = localStorage.getItem('username') || "User";
-    document.getElementById('greeting').innerText = `Welcome, ${user}`;
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('loggedInUser');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('adminToken');
+      window.location.href = '/';
+    });
 
-    // Dark Mode Toggle
-    function toggleTheme() {
-      const html = document.documentElement;
-      const current = html.getAttribute("data-theme");
-      const newTheme = current === "dark" ? "light" : "dark";
-      html.setAttribute("data-theme", newTheme);
-      localStorage.setItem("theme", newTheme);
+    function formatDate(value) {
+      if (!value) return 'Not recorded';
+      return new Date(value).toLocaleString();
     }
 
-    // Load saved theme
-    window.onload = () => {
-      const savedTheme = localStorage.getItem("theme") || "light";
-      document.documentElement.setAttribute("data-theme", savedTheme);
+    function statusClass(status) {
+      const normalized = String(status || '').toLowerCase();
+      if (normalized === 'completed') return 'status completed';
+      if (normalized === 'cancelled') return 'status cancelled';
+      return 'status';
     }
+
+    function empty(text) {
+      return `<div class="empty">${text}</div>`;
+    }
+
+    function renderRequests(items = []) {
+      const target = document.getElementById('requestsList');
+      target.innerHTML = items.length ? items.map(item => `
+        <article class="list-item">
+          <h3>${item.service || 'Service Request'}</h3>
+          <p>${item.message || 'No details provided.'}</p>
+          <span class="${statusClass(item.status)}">${item.status || 'new'}</span>
+          <p class="muted">${formatDate(item.timestamp || item.createdAt)}</p>
+        </article>
+      `).join('') : empty('No service requests yet.');
+    }
+
+    function renderOrders(items = []) {
+      const target = document.getElementById('ordersList');
+      target.innerHTML = items.length ? items.map(item => `
+        <article class="list-item">
+          <h3>${item.title || item.service || 'Order'}</h3>
+          <p>${item.description || 'Order details will appear here once added by the team.'}</p>
+          <span class="${statusClass(item.status)}">${item.status || 'pending'}</span>
+          <p class="muted">Payment: ${item.paymentStatus || 'pending'}</p>
+        </article>
+      `).join('') : empty('No orders yet.');
+    }
+
+    function renderMessages(items = []) {
+      const target = document.getElementById('messagesList');
+      target.innerHTML = items.length ? items.map(item => `
+        <article class="list-item">
+          <h3>${item.type || 'Update'}</h3>
+          <p>${item.message || ''}</p>
+          <p class="muted">${formatDate(item.createdAt)}</p>
+        </article>
+      `).join('') : empty('No messages or updates yet.');
+    }
+
+    function renderDownloads(items = []) {
+      const target = document.getElementById('downloadsList');
+      const nonMusic = items.filter(item => item.type !== 'music');
+      target.innerHTML = nonMusic.length ? nonMusic.map(item => `
+        <article class="list-item">
+          <h3>${item.fileName || 'Delivery file'}</h3>
+          <p class="muted">Type: ${item.type || 'other'}</p>
+          <p class="muted">Order: ${item.orderId || 'General'}</p>
+          <a class="download-link" href="${item.fileUrl}" download>Download File</a>
+        </article>
+      `).join('') : empty('Completed design, document, and other files will appear here.');
+    }
+
+    function renderMusicFiles(items = []) {
+      const target = document.getElementById('musicFilesList');
+      const music = items.filter(item => item.type === 'music');
+      target.innerHTML = music.length ? music.map(item => `
+        <article class="list-item">
+          <h3>${item.fileName || 'Music delivery'}</h3>
+          <p class="muted">Order: ${item.orderId || 'Music project'}</p>
+          <span class="${statusClass(item.status)}">${item.status || 'available'}</span>
+          <a class="download-link" href="${item.fileUrl}" download>Download Music File</a>
+        </article>
+      `).join('') : empty('Music downloads will appear here when admin adds a music delivery URL.');
+    }
+
+    function renderUploads(items = []) {
+      const target = document.getElementById('uploadsList');
+      target.innerHTML = items.length ? items.map(item => `
+        <article class="list-item">
+          <h3>${item.fileName || 'Uploaded file'}</h3>
+          <p class="muted">${formatDate(item.createdAt || item.uploadedAt)}</p>
+        </article>
+      `).join('') : empty('No uploaded files yet.');
+    }
+
+    function renderFeedback(items = []) {
+      const target = document.getElementById('feedbackList');
+      target.innerHTML = items.length ? items.slice(-3).reverse().map(item => `
+        <article class="list-item">
+          <p>${item.feedback}</p>
+          <span class="${statusClass(item.status)}">${item.status || 'pending-review'}</span>
+        </article>
+      `).join('') : empty('Your submitted feedback will appear here.');
+    }
+
+    function renderProfile(profile) {
+      document.getElementById('profileSummary').innerHTML = `
+        <article class="list-item">
+          <h3>${profile?.name || userName}</h3>
+          <p>${profile?.email || userEmail}</p>
+          <p class="muted">Role: ${profile?.role || 'user'}</p>
+        </article>
+      `;
+    }
+
+    async function loadWorkspace() {
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const response = await fetch('/api/user/workspace', { headers });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error || 'Unable to load dashboard.');
+
+      document.getElementById('metricRequests').textContent = data.requests?.length || 0;
+      document.getElementById('metricPending').textContent = data.metrics?.userPendingOrders || 0;
+      document.getElementById('metricCompleted').textContent = data.metrics?.userCompletedOrders || 0;
+      document.getElementById('metricMessages').textContent = data.messages?.length || 0;
+
+      renderRequests(data.requests);
+      renderOrders(data.orders);
+      renderMessages(data.messages);
+      renderDownloads(data.downloads);
+      renderMusicFiles(data.downloads || data.deliveries || []);
+      renderUploads(data.uploads);
+      renderFeedback(data.feedback);
+      renderProfile(data.user);
+    }
+
+    document.getElementById('serviceRequestForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const service = form.service.value;
+      const message = form.message.value.trim();
+      const response = await fetch('/api/user/service-request', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ service, message })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        alert(data.error || 'Could not submit request.');
+        return;
+      }
+      form.reset();
+      await loadWorkspace();
+      alert('Your service request has been submitted.');
+    });
+
+    document.getElementById('dashboardFeedbackForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const feedback = form.feedback.value.trim();
+      const response = await fetch('/api/user/feedback', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ feedback })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        alert(data.error || 'Could not submit feedback.');
+        return;
+      }
+      form.reset();
+      await loadWorkspace();
+      alert('Thank you. Your feedback has been submitted for review.');
+    });
+
+    loadWorkspace().catch(error => {
+      console.error(error);
+      alert('Please log in again to view your dashboard.');
+      window.location.href = 'login.html';
+    });
   </script>
 </body>
 </html>

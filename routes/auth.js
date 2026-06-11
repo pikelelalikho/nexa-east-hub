@@ -1,4 +1,5 @@
 // routes/auth.js
+import 'dotenv/config';
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -7,15 +8,35 @@ import { readUsers, saveUsers } from '../utils/users.js';
 import { saveLog } from '../utils/logs.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'development-only-jwt-secret-change-me';
+const emailEnabled = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const emailFrom = `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_EMAIL}>`;
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'pikelelalikho@gmail.com',
+function getEmailTransportConfig() {
+  const auth = {
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  };
+
+  if (process.env.EMAIL_HOST) {
+    const port = Number(process.env.EMAIL_PORT) || 587;
+    return {
+      host: process.env.EMAIL_HOST,
+      port,
+      secure: process.env.EMAIL_SECURE === 'true' || port === 465,
+      auth
+    };
   }
-});
+
+  return {
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    auth
+  };
+}
+
+const transporter = emailEnabled
+  ? nodemailer.createTransport(getEmailTransportConfig())
+  : null;
 
 // ----- Login -----
 router.post('/login', async (req, res) => {
@@ -42,12 +63,14 @@ router.post('/login', async (req, res) => {
   saveLog({ timestamp: Date.now(), eventType: 'login_success', details: 'User logged in', user: email });
 
   try {
-    await transporter.sendMail({
-      from: 'Nexa East Hub <pikelelalikho@gmail.com>',
-      to: email,
-      subject: 'Thank you for signing in',
-      text: `Hello ${user.name},\n\nYou signed in on ${new Date().toLocaleString()}.\n\n- Nexa Team`
-    });
+    if (transporter) {
+      await transporter.sendMail({
+        from: emailFrom,
+        to: email,
+        subject: 'Thank you for signing in',
+        text: `Hello ${user.name},\n\nYou signed in on ${new Date().toLocaleString()}.\n\n- Nexa Team`
+      });
+    }
   } catch (err) {
     console.error('Login email failed:', err);
   }

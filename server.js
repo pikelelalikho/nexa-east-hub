@@ -1,12 +1,10 @@
-
-
 // ---------- Dependencies ----------
+import 'dotenv/config';
 import express from 'express';
 import fs from 'fs';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { Server } from 'socket.io';
@@ -20,34 +18,121 @@ import apiRoutes from './routes/login.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import { authenticateToken } from './middleware/authMiddleware.js';
+import { dbEnabled, dbAvailable, User, Contact, syncDatabase, markDatabaseUnavailable } from './utils/db.js';
 
 // ES Module dirname fix
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config();
+const isProduction = process.env.NODE_ENV === 'production';
+const PORT = Number(process.env.PORT) || 3000;
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
+    : [];
+const emailEnabled = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const emailFrom = `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_EMAIL}>`;
 
-const PORT = process.env.PORT || 3000;
+function validateEnvironment() {
+    const errors = [];
+    const warnings = [];
+
+    if (isProduction) {
+        if (!process.env.JWT_SECRET) {
+            errors.push('JWT_SECRET is required in production.');
+        } else if (process.env.JWT_SECRET.length < 32) {
+            errors.push('JWT_SECRET must be at least 32 characters in production.');
+        }
+
+        if (allowedOrigins.length === 0) {
+            errors.push('ALLOWED_ORIGINS must include your production origin, for example https://nexaeasthub.co.za.');
+        }
+
+        if (!allowedOrigins.includes('https://nexaeasthub.co.za')) {
+            warnings.push('ALLOWED_ORIGINS should include https://nexaeasthub.co.za in production.');
+        }
+    }
+
+    if (!dbEnabled) {
+        warnings.push('PostgreSQL is not configured. User and contact storage will fall back to JSON files.');
+    }
+
+    if (!emailEnabled) {
+        warnings.push('EMAIL_USER and EMAIL_PASS are not both set. Email delivery will be skipped.');
+    }
+
+    if (emailEnabled && (!process.env.EMAIL_FROM_NAME || !process.env.EMAIL_FROM_EMAIL)) {
+        warnings.push('EMAIL_FROM_NAME and EMAIL_FROM_EMAIL should be set so Brevo sends from the public NEXA East Hub address.');
+    }
+
+    if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
+        warnings.push('ADMIN_EMAIL and ADMIN_PASSWORD are not both set. Startup admin reset will be skipped.');
+    }
+
+    warnings.forEach(message => console.warn(`Config warning: ${message}`));
+
+    if (errors.length > 0) {
+        console.error('Invalid production configuration:');
+        errors.forEach(message => console.error(`- ${message}`));
+        process.exit(1);
+    }
+}
+
+validateEnvironment();
+
 const app = express();
+
+app.set('trust proxy', isProduction ? 1 : false);
+
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: process.env.NODE_ENV === 'production' ? false : ["http://localhost:3000"],
+        origin: isProduction ? allowedOrigins : ["http://localhost:3000", "http://127.0.0.1:3000"],
         methods: ["GET", "POST"]
     }
 });
 
 // ---------- JWT Secret ----------
-const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'development-only-jwt-secret-change-me';
 
 // ---------- Email Transporter ----------
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
+function getEmailTransportConfig() {
+    const auth = {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    };
+
+    if (process.env.EMAIL_HOST) {
+        const port = Number(process.env.EMAIL_PORT) || 587;
+        return {
+            host: process.env.EMAIL_HOST,
+            port,
+            secure: process.env.EMAIL_SECURE === 'true' || port === 465,
+            auth
+        };
     }
-});
+
+    return {
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth
+    };
+}
+
+const transporter = emailEnabled
+    ? nodemailer.createTransport(getEmailTransportConfig())
+    : null;
+
+async function sendEmail(mailOptions) {
+    if (!transporter) {
+        console.warn(`Email skipped because SMTP is not configured: ${mailOptions.subject}`);
+        return false;
+    }
+
+    await transporter.sendMail({
+        ...mailOptions,
+        from: emailFrom
+    });
+    return true;
+}
 
 // ---------- Global Error Handlers ----------
 process.on('uncaughtException', (err) => {
@@ -95,7 +180,7 @@ const forgotPasswordLimiter = rateLimit({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') : true,
+    origin: isProduction ? allowedOrigins : true,
     credentials: true
 }));
 app.use(helmet({
@@ -103,15 +188,16 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "data:", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://static.cloudflareinsights.com"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "ws:", "wss:"]
+            connectSrc: ["'self'", "ws:", "wss:", "https://static.cloudflareinsights.com", "https://cloudflareinsights.com"]
         }
     }
 }));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files without default index handling so root can use web.html
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // Apply rate limiting to specific routes
 app.use('/api/auth/login', loginLimiter);
@@ -123,9 +209,19 @@ app.use('/api/forgot-password', forgotPasswordLimiter);
 app.use('/api/reset-password', forgotPasswordLimiter);
 
 // ---------- Utility Functions ----------
-function readUsers() {
+async function readUsers() {
+    if (dbAvailable) {
+        try {
+            const dbUsers = await User.findAll({ raw: true });
+            return dbUsers.map(user => ({ ...user, email: user.email.toLowerCase() }));
+        } catch (error) {
+            markDatabaseUnavailable(error);
+        }
+    }
+
     const filePath = path.join(__dirname, 'users.json');
     if (!fs.existsSync(filePath)) return [];
+
     try {
         const data = fs.readFileSync(filePath, 'utf-8');
         return JSON.parse(data);
@@ -133,6 +229,63 @@ function readUsers() {
         console.error('Error reading users.json:', error);
         return [];
     }
+}
+
+async function findUserByEmail(email) {
+    const normalizedEmail = email.toLowerCase();
+    if (dbAvailable) {
+        try {
+            return await User.findOne({ where: { email: normalizedEmail } });
+        } catch (error) {
+            markDatabaseUnavailable(error);
+        }
+    }
+    const users = await readUsers();
+    return users.find(user => user.email.toLowerCase() === normalizedEmail);
+}
+
+async function createUser(userData) {
+    if (dbAvailable) {
+        try {
+            return await User.create({ ...userData, email: userData.email.toLowerCase() });
+        } catch (error) {
+            markDatabaseUnavailable(error);
+        }
+    }
+    const users = await readUsers();
+    users.push(userData);
+    saveUsers(users);
+    return userData;
+}
+
+async function updateUser(email, updates) {
+    const normalizedEmail = email.toLowerCase();
+    if (dbAvailable) {
+        try {
+            const user = await User.findOne({ where: { email: normalizedEmail } });
+            if (!user) return null;
+            return await user.update(updates);
+        } catch (error) {
+            markDatabaseUnavailable(error);
+        }
+    }
+    const users = await readUsers();
+    const index = users.findIndex(u => u.email.toLowerCase() === normalizedEmail);
+    if (index === -1) return null;
+    users[index] = { ...users[index], ...updates, updatedAt: new Date().toISOString() };
+    saveUsers(users);
+    return users[index];
+}
+
+async function listUsers() {
+    if (dbAvailable) {
+        try {
+            return await User.findAll({ raw: true });
+        } catch (error) {
+            markDatabaseUnavailable(error);
+        }
+    }
+    return await readUsers();
 }
 
 function saveUsers(users) {
@@ -149,7 +302,7 @@ function saveUsers(users) {
 function saveLog(entry) {
     const filePath = path.join(__dirname, 'logs.json');
     let logs = [];
-    
+
     if (fs.existsSync(filePath)) {
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
@@ -158,21 +311,144 @@ function saveLog(entry) {
             console.error('Error reading logs.json:', error);
         }
     }
-    
+
     const logEntry = {
         ...entry,
         timestamp: entry.timestamp || Date.now(),
         id: Date.now() + Math.random()
     };
-    
+
     logs.push(logEntry);
-    
+
     try {
         fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
         io.emit('new_log', logEntry);
     } catch (error) {
         console.error('Error writing logs.json:', error);
     }
+}
+
+function readJsonFile(filename, fallback = []) {
+    const filePath = path.join(__dirname, filename);
+    if (!fs.existsSync(filePath)) return fallback;
+
+    try {
+        const content = fs.readFileSync(filePath, 'utf-8').trim();
+        if (!content) return fallback;
+        return JSON.parse(content);
+    } catch (error) {
+        console.error(`Error reading ${filename}:`, error);
+        return fallback;
+    }
+}
+
+function writeJsonFile(filename, data) {
+    const filePath = path.join(__dirname, filename);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+function sanitizeUser(user) {
+    if (!user) return null;
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role || 'user',
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        isActive: user.isActive !== false
+    };
+}
+
+function getUserKey(user) {
+    return String(user.id || user.email).toLowerCase();
+}
+
+function itemBelongsToUser(item, user) {
+    const userKey = getUserKey(user);
+    return [item.userId, item.userEmail, item.email]
+        .filter(Boolean)
+        .map(value => String(value).toLowerCase())
+        .includes(userKey) || String(item.userEmail || '').toLowerCase() === String(user.email || '').toLowerCase();
+}
+
+function countByStatus(items, status) {
+    return items.filter(item => String(item.status || '').toLowerCase() === status).length;
+}
+
+const ORDER_STATUSES = ['pending', 'in-progress', 'ready', 'ready-for-download', 'delivered', 'completed', 'cancelled'];
+
+function isActiveOrder(order) {
+    return ['pending', 'in-progress', 'ready', 'ready-for-download', 'awaiting-payment'].includes(String(order.status || 'pending').toLowerCase());
+}
+
+async function findUserByIdentifier(identifier) {
+    const users = await listUsers();
+    return users.find(item => String(item.id) === String(identifier) || String(item.email).toLowerCase() === String(identifier).toLowerCase());
+}
+
+function getLastActivityForUser(logs, user) {
+    const email = String(user.email || '').toLowerCase();
+    const userLogs = logs.filter(log => String(log.user || '').toLowerCase() === email);
+    if (!userLogs.length) return user.updatedAt || user.createdAt || null;
+    return new Date(Math.max(...userLogs.map(log => Number(log.timestamp || 0)))).toISOString();
+}
+
+async function buildOperationsSnapshot(user = null) {
+    const users = await listUsers();
+    const contacts = readJsonFile('contacts.json');
+    const orders = readJsonFile('orders.json');
+    const uploads = readJsonFile('uploads.json');
+    const deliveries = readJsonFile('deliveries.json');
+    const messages = readJsonFile('messages.json');
+    const feedback = readJsonFile('feedback.json');
+    const notes = readJsonFile('admin-notes.json');
+    const logs = readJsonFile('logs.json');
+
+    const scope = items => user ? items.filter(item => itemBelongsToUser(item, user)) : items;
+    const scopedOrders = scope(orders);
+    const scopedContacts = scope(contacts);
+    const scopedUploads = scope(uploads);
+    const scopedDeliveries = scope(deliveries);
+    const scopedMessages = scope(messages);
+    const scopedFeedback = scope(feedback);
+    const scopedNotes = scope(notes);
+
+    const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const weeklyActivity = logs.filter(log => Number(log.timestamp || new Date(log.createdAt || log.submittedAt || 0).getTime()) >= oneWeekAgo).length;
+
+    return {
+        metrics: {
+            totalUsers: users.length,
+            activeOrders: orders.filter(isActiveOrder).length,
+            pendingOrders: countByStatus(orders, 'pending') + countByStatus(orders, 'in-progress') + countByStatus(orders, 'ready') + countByStatus(orders, 'ready-for-download'),
+            completedOrders: countByStatus(orders, 'completed'),
+            pendingDeliveries: deliveries.filter(item => String(item.status || 'available').toLowerCase() !== 'delivered').length,
+            completedDeliveries: countByStatus(deliveries, 'delivered') + countByStatus(deliveries, 'completed'),
+            serviceRequests: contacts.length,
+            uploads: uploads.length,
+            feedbackCount: feedback.length,
+            failedLogins: logs.filter(log => log.eventType === 'login_failed').length,
+            successfulLogins: logs.filter(log => log.eventType === 'login_success').length,
+            weeklyActivity,
+            userPendingOrders: scopedOrders.filter(isActiveOrder).length,
+            userCompletedOrders: countByStatus(scopedOrders, 'completed')
+        },
+        users: users.map(item => ({
+            ...sanitizeUser(item),
+            ordersCount: orders.filter(order => itemBelongsToUser(order, item)).length,
+            lastActivity: getLastActivityForUser(logs, item)
+        })),
+        requests: scopedContacts,
+        orders: scopedOrders,
+        uploads: scopedUploads,
+        downloads: scopedDeliveries,
+        deliveries: scopedDeliveries,
+        messages: scopedMessages,
+        feedback: scopedFeedback,
+        notes: scopedNotes,
+        logs
+    };
 }
 
 // ---------- Authentication Middleware ----------
@@ -221,55 +497,80 @@ function authenticateAdminRoute(req, res, next) {
 
 // ---------- ADMIN RESET FUNCTION ----------
 async function createOrUpdateAdmin() {
-    const adminEmail = process.env.ADMIN_EMAIL || 'pikelelalikho@gmail.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || '@01Nexaadmin';
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
     const adminName = process.env.ADMIN_NAME || 'Nexa Admin';
+
+    if (!adminEmail || !adminPassword) {
+        console.warn('Admin reset skipped: ADMIN_EMAIL and ADMIN_PASSWORD are required to create or update the admin user.');
+        return;
+    }
 
     try {
         console.log('🔄 Creating/Updating admin user...');
-        
-        let users = readUsers();
         const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
-        const adminIndex = users.findIndex(u => u.email === adminEmail || u.role === 'admin');
-        
-        if (adminIndex !== -1) {
-            users[adminIndex] = {
-                ...users[adminIndex],
-                password: hashedPassword,
-                role: 'admin',
-                email: adminEmail,
-                name: adminName,
-                updatedAt: new Date().toISOString()
-            };
-            console.log('✅ Admin user updated successfully');
+        if (dbAvailable) {
+            const [admin, created] = await User.findOrCreate({
+                where: { email: adminEmail.toLowerCase() },
+                defaults: {
+                    name: adminName,
+                    password: hashedPassword,
+                    role: 'admin',
+                    isActive: true
+                }
+            });
+
+            if (!created) {
+                await admin.update({
+                    name: adminName,
+                    password: hashedPassword,
+                    role: 'admin',
+                    isActive: true
+                });
+                console.log('✅ Admin user updated successfully');
+            } else {
+                console.log('✅ New admin user created successfully');
+            }
         } else {
-            const newAdmin = {
-                id: Date.now(),
-                name: adminName,
-                email: adminEmail,
-                password: hashedPassword,
-                role: 'admin',
-                createdAt: new Date().toISOString()
-            };
-            users.push(newAdmin);
-            console.log('✅ New admin user created successfully');
+            let users = await readUsers();
+            const adminIndex = users.findIndex(u => u.email === adminEmail.toLowerCase() || u.role === 'admin');
+
+            if (adminIndex !== -1) {
+                users[adminIndex] = {
+                    ...users[adminIndex],
+                    password: hashedPassword,
+                    role: 'admin',
+                    email: adminEmail.toLowerCase(),
+                    name: adminName,
+                    updatedAt: new Date().toISOString(),
+                    isActive: true
+                };
+                console.log('✅ Admin user updated successfully');
+            } else {
+                const newAdmin = {
+                    id: Date.now(),
+                    name: adminName,
+                    email: adminEmail.toLowerCase(),
+                    password: hashedPassword,
+                    role: 'admin',
+                    createdAt: new Date().toISOString(),
+                    isActive: true
+                };
+                users.push(newAdmin);
+                console.log('✅ New admin user created successfully');
+            }
+
+            saveUsers(users);
         }
 
-        if (saveUsers(users)) {
-            saveLog({ 
-                eventType: 'admin_reset', 
-                details: 'Admin password reset on server startup',
-                user: 'system'
-            });
-            
-            console.log('==========================================');
-            console.log('🔐 ADMIN LOGIN CREDENTIALS:');
-            console.log(`📧 Email: ${adminEmail}`);
-            console.log(`🔑 Password: ${adminPassword}`);
-            console.log('==========================================');
-        }
-        
+        saveLog({
+            eventType: 'admin_reset',
+            details: 'Admin password reset on server startup',
+            user: 'system'
+        });
+
+        console.log(`🔐 Admin user ready: ${adminEmail}`);
     } catch (error) {
         console.error('❌ Error creating/updating admin:', error);
     }
@@ -286,48 +587,48 @@ app.post('/signup', signupLimiter, async (req, res) => {
 
     // Validation
     if (!name || !email || !password) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Missing required fields', 
-            user: email || 'unknown' 
+        saveLog({
+            eventType: 'signup_failed',
+            details: 'Missing required fields',
+            user: email || 'unknown'
         });
         return res.status(400).json({ success: false, error: 'All fields are required' });
     }
 
     if (name.trim().length < 2) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Name too short', 
-            user: email 
+        saveLog({
+            eventType: 'signup_failed',
+            details: 'Name too short',
+            user: email
         });
         return res.status(400).json({ success: false, error: 'Name must be at least 2 characters' });
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Invalid email format', 
-            user: email 
+        saveLog({
+            eventType: 'signup_failed',
+            details: 'Invalid email format',
+            user: email
         });
         return res.status(400).json({ success: false, error: 'Please enter a valid email address' });
     }
 
     if (password.length < 6) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Password too short', 
-            user: email 
+        saveLog({
+            eventType: 'signup_failed',
+            details: 'Password too short',
+            user: email
         });
         return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
     }
 
-    const users = readUsers();
-    
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-        saveLog({ 
-            eventType: 'signup_failed', 
-            details: 'Email already exists', 
-            user: email 
+    const existingUser = await findUserByEmail(email);
+
+    if (existingUser) {
+        saveLog({
+            eventType: 'signup_failed',
+            details: 'Email already exists',
+            user: email
         });
         return res.status(409).json({ success: false, error: 'Email already registered' });
     }
@@ -335,56 +636,52 @@ app.post('/signup', signupLimiter, async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = {
-            id: Date.now(),
             name: name.trim(),
             email: email.toLowerCase(),
             password: hashedPassword,
             role: 'user',
-            createdAt: new Date().toISOString(),
             isActive: true
         };
 
-        users.push(newUser);
-        
-        if (saveUsers(users)) {
-            saveLog({ 
-                eventType: 'signup_success', 
-                details: `New user registered: ${name}`, 
-                user: email 
-            });
+        await createUser({
+            ...newUser,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        });
 
-            // Send welcome email
-            try {
-                const mailOptions = {
-                    from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
-                    to: email,
-                    subject: 'Welcome to Nexa East Hub!',
-                    html: `
-                        <h2>Welcome to Nexa East Hub!</h2>
-                        <p>Hello ${name},</p>
-                        <p>Your account has been created successfully.</p>
-                        <p>You can now log in and explore our services.</p>
-                        <br>
-                        <p>Best regards,<br>Nexa Team</p>
-                    `
-                };
+        saveLog({
+            eventType: 'signup_success',
+            details: `New user registered: ${name}`,
+            user: email
+        });
 
-                await transporter.sendMail(mailOptions);
-            } catch (emailError) {
-                console.error('Failed to send welcome email:', emailError);
-                // Don't fail the signup if email fails
-            }
+        try {
+            const mailOptions = {
+                from: emailFrom,
+                to: email,
+                subject: 'Welcome to Nexa East Hub!',
+                html: `
+                    <h2>Welcome to Nexa East Hub!</h2>
+                    <p>Hello ${name},</p>
+                    <p>Your account has been created successfully.</p>
+                    <p>You can now log in and explore our services.</p>
+                    <br>
+                    <p>Best regards,<br>Nexa Team</p>
+                `
+            };
 
-            res.json({ success: true, message: 'User registered successfully' });
-        } else {
-            throw new Error('Failed to save user data');
+            await sendEmail(mailOptions);
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
         }
+
+        res.json({ success: true, message: 'User registered successfully' });
     } catch (error) {
         console.error('Signup error:', error);
-        saveLog({ 
-            eventType: 'signup_error', 
-            details: error.message, 
-            user: email 
+        saveLog({
+            eventType: 'signup_error',
+            details: error.message,
+            user: email
         });
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
@@ -398,23 +695,22 @@ app.post('/login', loginLimiter, async (req, res) => {
         return res.status(400).json({ success: false, error: 'Email and password are required' });
     }
 
-    const users = readUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const user = await findUserByEmail(email);
 
     if (!user) {
-        saveLog({ 
-            eventType: 'login_failed', 
-            details: `Login attempt with non-existent email: ${email}`, 
-            user: email 
+        saveLog({
+            eventType: 'login_failed',
+            details: `Login attempt with non-existent email: ${email}`,
+            user: email
         });
         return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
 
     if (!user.isActive) {
-        saveLog({ 
-            eventType: 'login_failed', 
-            details: `Login attempt with deactivated account: ${email}`, 
-            user: email 
+        saveLog({
+            eventType: 'login_failed',
+            details: `Login attempt with deactivated account: ${email}`,
+            user: email
         });
         return res.status(401).json({ success: false, error: 'Account has been deactivated' });
     }
@@ -422,34 +718,34 @@ app.post('/login', loginLimiter, async (req, res) => {
     try {
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            saveLog({ 
-                eventType: 'login_failed', 
-                details: `Invalid password for ${email}`, 
-                user: email 
+            saveLog({
+                eventType: 'login_failed',
+                details: `Invalid password for ${email}`,
+                user: email
             });
             return res.status(401).json({ success: false, error: 'Invalid email or password' });
         }
 
         const token = jwt.sign(
-            { 
-                email: user.email, 
-                role: user.role || 'user', 
-                id: user.id 
-            }, 
-            JWT_SECRET, 
+            {
+                email: user.email,
+                role: user.role || 'user',
+                id: user.id
+            },
+            JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        saveLog({ 
-            eventType: 'login_success', 
-            details: 'User logged in successfully', 
-            user: email 
+        saveLog({
+            eventType: 'login_success',
+            details: 'User logged in successfully',
+            user: email
         });
 
         // Send login notification email
         try {
             const mailOptions = {
-                from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
+                from: emailFrom,
                 to: email,
                 subject: 'Login Notification - Nexa East Hub',
                 html: `
@@ -462,8 +758,8 @@ app.post('/login', loginLimiter, async (req, res) => {
                 `
             };
 
-            await transporter.sendMail(mailOptions);
-            
+            await sendEmail(mailOptions);
+
             res.json({
                 success: true,
                 message: 'Login successful',
@@ -484,10 +780,10 @@ app.post('/login', loginLimiter, async (req, res) => {
         }
     } catch (error) {
         console.error('Login error:', error);
-        saveLog({ 
-            eventType: 'login_error', 
-            details: error.message, 
-            user: email 
+        saveLog({
+            eventType: 'login_error',
+            details: error.message,
+            user: email
         });
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
@@ -505,13 +801,12 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
         return res.status(400).json({ success: false, error: 'Please enter a valid email address' });
     }
 
-    const users = readUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const user = await findUserByEmail(email);
 
-    saveLog({ 
-        eventType: 'forgot_password_request', 
-        details: `Password reset requested for ${email}`, 
-        user: email 
+    saveLog({
+        eventType: 'forgot_password_request',
+        details: `Password reset requested for ${email}`,
+        user: email
     });
 
     if (user && user.isActive) {
@@ -520,7 +815,7 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
             const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${resetToken}`;
 
             const mailOptions = {
-                from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
+                from: emailFrom,
                 to: email,
                 subject: 'Password Reset Request - Nexa East Hub',
                 html: `
@@ -528,7 +823,7 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
                     <p>Hello ${user.name},</p>
                     <p>You requested a password reset. Click the button below to reset your password:</p>
                     <p style="text-align: center; margin: 30px 0;">
-                        <a href="${resetLink}" 
+                        <a href="${resetLink}"
                            style="background:#0066cc;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;">
                            Reset Your Password
                         </a>
@@ -542,25 +837,22 @@ app.post('/api/forgot-password', forgotPasswordLimiter, async (req, res) => {
                 `
             };
 
-            await transporter.sendMail(mailOptions);
+            await sendEmail(mailOptions);
         } catch (emailError) {
             console.error('Failed to send reset email:', emailError);
         }
     }
 
     // Always return success for security (don't reveal if email exists)
-    res.json({ 
-        success: true, 
-        message: 'If the email exists in our system, a reset link has been sent' 
+    res.json({
+        success: true,
+        message: 'If the email exists in our system, a reset link has been sent'
     });
 });
 
 // ---------- Reset Password Route ----------
 app.post('/api/reset-password', forgotPasswordLimiter, async (req, res) => {
     const { token, password } = req.body;
-
-    console.log('🔑 Received token:', token);
-    console.log('🔐 JWT_SECRET:', JWT_SECRET);
 
     if (!token || !password) {
         return res.status(400).json({ success: false, error: 'Token and password are required' });
@@ -592,31 +884,28 @@ app.post('/api/reset-password', forgotPasswordLimiter, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Token verification failed' });
         }
 
-        const users = readUsers();
-        const userIndex = users.findIndex(u => u.email.toLowerCase() === decoded.email.toLowerCase());
+        const user = await findUserByEmail(decoded.email);
 
-        if (userIndex === -1) {
+        if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-        users[userIndex].password = hashedPassword;
-        users[userIndex].updatedAt = new Date().toISOString();
+        await updateUser(decoded.email, {
+            password: hashedPassword,
+            updatedAt: new Date().toISOString()
+        });
 
-        if (!saveUsers(users)) {
-            throw new Error('Failed to save password update');
-        }
-
-        saveLog({ 
-            eventType: 'password_reset_success', 
-            details: `Password reset completed for ${decoded.email}`, 
-            user: decoded.email 
+        saveLog({
+            eventType: 'password_reset_success',
+            details: `Password reset completed for ${decoded.email}`,
+            user: decoded.email
         });
 
         // ✅ Optional email notification
         try {
             const mailOptions = {
-                from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
+                from: emailFrom,
                 to: decoded.email,
                 subject: 'Password Reset Successful - Nexa East Hub',
                 html: `
@@ -629,7 +918,7 @@ app.post('/api/reset-password', forgotPasswordLimiter, async (req, res) => {
                     <p>Best regards,<br>Nexa Team</p>
                 `
             };
-            await transporter.sendMail(mailOptions);
+            await sendEmail(mailOptions);
         } catch (emailError) {
             console.error('Failed to send confirmation email:', emailError);
         }
@@ -650,10 +939,10 @@ app.post('/contact', contactLimiter, async (req, res) => {
 
     // Validation
     if (!name || !email || !service || !message) {
-        saveLog({ 
-            eventType: 'contact_form_failed', 
-            details: 'Missing required fields', 
-            user: email || 'unknown' 
+        saveLog({
+            eventType: 'contact_form_failed',
+            details: 'Missing required fields',
+            user: email || 'unknown'
         });
         return res.status(400).json({ success: false, error: 'All required fields must be filled' });
     }
@@ -673,40 +962,52 @@ app.post('/contact', contactLimiter, async (req, res) => {
     try {
         // Save contact message to file
         const contactEntry = {
-            id: Date.now(),
             name: name.trim(),
             email: email.toLowerCase(),
             phone: phone?.trim() || null,
             service,
             message: message.trim(),
-            timestamp: new Date().toISOString(),
             status: 'new'
         };
 
-        const contactsPath = path.join(__dirname, 'contacts.json');
-        let contacts = [];
-        
-        if (fs.existsSync(contactsPath)) {
+        if (dbAvailable) {
             try {
-                const data = fs.readFileSync(contactsPath, 'utf-8');
-                contacts = JSON.parse(data);
+                await Contact.create(contactEntry);
             } catch (error) {
-                console.error('Error reading contacts.json:', error);
+                markDatabaseUnavailable(error);
             }
         }
-        
-        contacts.push(contactEntry);
-        fs.writeFileSync(contactsPath, JSON.stringify(contacts, null, 2));
 
-        saveLog({ 
-            eventType: 'contact_message', 
-            details: `Contact form submission from ${name} (${email}) for ${service}`, 
-            user: email 
+        if (!dbAvailable) {
+            const contactsPath = path.join(__dirname, 'contacts.json');
+            let contacts = [];
+
+            if (fs.existsSync(contactsPath)) {
+                try {
+                    const data = fs.readFileSync(contactsPath, 'utf-8');
+                    contacts = JSON.parse(data);
+                } catch (error) {
+                    console.error('Error reading contacts.json:', error);
+                }
+            }
+
+            contacts.push({
+                id: Date.now(),
+                ...contactEntry,
+                timestamp: new Date().toISOString()
+            });
+            fs.writeFileSync(contactsPath, JSON.stringify(contacts, null, 2));
+        }
+
+        saveLog({
+            eventType: 'contact_message',
+            details: `Contact form submission from ${name} (${email}) for ${service}`,
+            user: email
         });
 
         // Send confirmation email to user
         const userMailOptions = {
-            from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
+            from: emailFrom,
             to: email,
             subject: 'Thank you for contacting Nexa East Hub',
             html: `
@@ -724,7 +1025,7 @@ app.post('/contact', contactLimiter, async (req, res) => {
 
         // Send notification email to admin
         const adminMailOptions = {
-            from: `"Nexa East Hub" <${process.env.EMAIL_USER}>`,
+            from: emailFrom,
             to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
             subject: `New Contact Form Submission - ${service}`,
             html: `
@@ -743,20 +1044,20 @@ app.post('/contact', contactLimiter, async (req, res) => {
 
         // Send both emails
         await Promise.all([
-            transporter.sendMail(userMailOptions),
-            transporter.sendMail(adminMailOptions)
+            sendEmail(userMailOptions),
+            sendEmail(adminMailOptions)
         ]);
 
-        res.json({ 
-            success: true, 
-            message: 'Thank you for your message. We will get back to you soon!' 
+        res.json({
+            success: true,
+            message: 'Thank you for your message. We will get back to you soon!'
         });
     } catch (error) {
         console.error('Contact form error:', error);
-        saveLog({ 
-            eventType: 'contact_form_error', 
-            details: error.message, 
-            user: email 
+        saveLog({
+            eventType: 'contact_form_error',
+            details: error.message,
+            user: email
         });
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
@@ -765,18 +1066,18 @@ app.post('/contact', contactLimiter, async (req, res) => {
 // ---------- API Routes ----------
 app.post('/api/log', (req, res) => {
     const { eventType, details, user } = req.body;
-    
+
     if (!eventType) {
         return res.status(400).json({ success: false, error: 'eventType is required' });
     }
 
-    const log = { 
-        timestamp: Date.now(), 
-        eventType, 
-        details: details || '', 
-        user: user || 'anonymous' 
+    const log = {
+        timestamp: Date.now(),
+        eventType,
+        details: details || '',
+        user: user || 'anonymous'
     };
-    
+
     saveLog(log);
     res.json({ success: true, message: 'Log saved' });
 });
@@ -784,7 +1085,7 @@ app.post('/api/log', (req, res) => {
 // ---------- Admin Routes ----------
 app.get('/admin/logs', authenticateAdminRoute, (req, res) => {
     const logsPath = path.join(__dirname, 'logs.json');
-    
+
     try {
         if (fs.existsSync(logsPath)) {
             const data = fs.readFileSync(logsPath, 'utf-8');
@@ -801,7 +1102,7 @@ app.get('/admin/logs', authenticateAdminRoute, (req, res) => {
 
 app.get('/admin/contacts', authenticateAdminRoute, (req, res) => {
     const contactsPath = path.join(__dirname, 'contacts.json');
-    
+
     try {
         if (fs.existsSync(contactsPath)) {
             const data = fs.readFileSync(contactsPath, 'utf-8');
@@ -816,19 +1117,10 @@ app.get('/admin/contacts', authenticateAdminRoute, (req, res) => {
     }
 });
 
-app.get('/admin/users', authenticateAdminRoute, (req, res) => {
+app.get('/admin/users', authenticateAdminRoute, async (req, res) => {
     try {
-        const users = readUsers();
-        // Remove sensitive information
-        const sanitizedUsers = users.map(user => ({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-            isActive: user.isActive
-        }));
+        const users = await listUsers();
+        const sanitizedUsers = users.map(sanitizeUser);
         res.json(sanitizedUsers);
     } catch (error) {
         console.error('Error reading users:', error);
@@ -836,15 +1128,383 @@ app.get('/admin/users', authenticateAdminRoute, (req, res) => {
     }
 });
 
+app.get('/admin/operations-metrics', authenticateAdminRoute, async (req, res) => {
+    try {
+        const snapshot = await buildOperationsSnapshot();
+        res.json({ success: true, ...snapshot });
+    } catch (error) {
+        console.error('Error loading operations metrics:', error);
+        res.status(500).json({ success: false, error: 'Error loading operations metrics' });
+    }
+});
+
+app.get('/admin/users/:id', authenticateAdminRoute, async (req, res) => {
+    try {
+        const users = await listUsers();
+        const user = users.find(item => String(item.id) === String(req.params.id) || String(item.email).toLowerCase() === String(req.params.id).toLowerCase());
+
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        const snapshot = await buildOperationsSnapshot(user);
+        res.json({ success: true, user: sanitizeUser(user), ...snapshot });
+    } catch (error) {
+        console.error('Error loading admin user view:', error);
+        res.status(500).json({ success: false, error: 'Error loading user details' });
+    }
+});
+
+app.put('/admin/orders/:id/status', authenticateAdminRoute, (req, res) => {
+    const { status, paymentStatus } = req.body;
+    const allowedStatuses = ORDER_STATUSES;
+
+    if (status && !allowedStatuses.includes(status)) {
+        return res.status(400).json({ success: false, error: 'Invalid order status' });
+    }
+
+    const orders = readJsonFile('orders.json');
+    const orderIndex = orders.findIndex(order => String(order.id) === String(req.params.id));
+
+    if (orderIndex === -1) {
+        return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    orders[orderIndex] = {
+        ...orders[orderIndex],
+        status: status || orders[orderIndex].status,
+        paymentStatus: paymentStatus || orders[orderIndex].paymentStatus || 'pending',
+        updatedAt: new Date().toISOString(),
+        updatedBy: req.admin.email
+    };
+    writeJsonFile('orders.json', orders);
+
+    const messages = readJsonFile('messages.json');
+    messages.push({
+        id: Date.now(),
+        userEmail: orders[orderIndex].userEmail || orders[orderIndex].email,
+        orderId: orders[orderIndex].id,
+        message: `Your order status is now ${orders[orderIndex].status}.`,
+        type: 'status-update',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email,
+        read: false
+    });
+    writeJsonFile('messages.json', messages);
+
+    saveLog({
+        eventType: 'order_status_updated',
+        details: `Order ${req.params.id} updated to ${orders[orderIndex].status}`,
+        user: req.admin.email
+    });
+
+    res.json({ success: true, order: orders[orderIndex] });
+});
+
+app.post('/admin/users/:id/messages', authenticateAdminRoute, async (req, res) => {
+    const { message, orderId } = req.body;
+    if (!message || message.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+
+    const users = await listUsers();
+    const user = users.find(item => String(item.id) === String(req.params.id) || String(item.email).toLowerCase() === String(req.params.id).toLowerCase());
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const messages = readJsonFile('messages.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        orderId: orderId || null,
+        message: message.trim(),
+        type: 'admin-message',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email,
+        read: false
+    };
+    messages.push(entry);
+    writeJsonFile('messages.json', messages);
+
+    res.json({ success: true, message: entry });
+});
+
+app.post('/admin/users/:id/notes', authenticateAdminRoute, async (req, res) => {
+    const { note, orderId } = req.body;
+    if (!note || note.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'Note is required' });
+    }
+
+    const users = await listUsers();
+    const user = users.find(item => String(item.id) === String(req.params.id) || String(item.email).toLowerCase() === String(req.params.id).toLowerCase());
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const notes = readJsonFile('admin-notes.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        orderId: orderId || null,
+        note: note.trim(),
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email
+    };
+    notes.push(entry);
+    writeJsonFile('admin-notes.json', notes);
+
+    res.json({ success: true, note: entry });
+});
+
+app.post('/admin/users/:id/deliveries', authenticateAdminRoute, async (req, res) => {
+    const { fileName, fileUrl, orderId, type, status } = req.body;
+    if (!fileName || !fileUrl) {
+        return res.status(400).json({ success: false, error: 'fileName and fileUrl are required' });
+    }
+
+    const user = await findUserByIdentifier(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const deliveries = readJsonFile('deliveries.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        orderId: orderId || null,
+        fileName,
+        fileUrl,
+        type: type || 'other',
+        status: status || 'available',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email
+    };
+    deliveries.push(entry);
+    writeJsonFile('deliveries.json', deliveries);
+
+    res.json({ success: true, delivery: entry });
+});
+
+app.get('/api/admin/users', authenticateAdminRoute, async (req, res) => {
+    try {
+        const snapshot = await buildOperationsSnapshot();
+        res.json({ success: true, users: snapshot.users });
+    } catch (error) {
+        console.error('Error loading admin users:', error);
+        res.status(500).json({ success: false, error: 'Error loading users' });
+    }
+});
+
+app.get('/api/admin/users/:id', authenticateAdminRoute, async (req, res) => {
+    try {
+        const user = await findUserByIdentifier(req.params.id);
+        if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+        res.json({ success: true, user: sanitizeUser(user) });
+    } catch (error) {
+        console.error('Error loading admin user:', error);
+        res.status(500).json({ success: false, error: 'Error loading user' });
+    }
+});
+
+app.get('/api/admin/users/:id/workspace', authenticateAdminRoute, async (req, res) => {
+    try {
+        const user = await findUserByIdentifier(req.params.id);
+        if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+        const snapshot = await buildOperationsSnapshot(user);
+        res.json({ success: true, user: sanitizeUser(user), ...snapshot });
+    } catch (error) {
+        console.error('Error loading admin user workspace:', error);
+        res.status(500).json({ success: false, error: 'Error loading user workspace' });
+    }
+});
+
+app.get('/api/admin/operations', authenticateAdminRoute, async (req, res) => {
+    try {
+        const snapshot = await buildOperationsSnapshot();
+        res.json({ success: true, ...snapshot });
+    } catch (error) {
+        console.error('Error loading admin operations:', error);
+        res.status(500).json({ success: false, error: 'Error loading admin operations' });
+    }
+});
+
+app.post('/api/admin/users/:id/orders', authenticateAdminRoute, async (req, res) => {
+    const { title, service, description, status, paymentStatus } = req.body;
+    if (!title || title.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'Order title is required' });
+    }
+
+    const normalizedStatus = status || 'pending';
+    if (!ORDER_STATUSES.includes(normalizedStatus)) {
+        return res.status(400).json({ success: false, error: 'Invalid order status' });
+    }
+
+    const user = await findUserByIdentifier(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const orders = readJsonFile('orders.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        title: title.trim(),
+        service: service || 'General Service',
+        description: description?.trim() || '',
+        status: normalizedStatus,
+        paymentStatus: paymentStatus || 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: req.admin.email
+    };
+    orders.push(entry);
+    writeJsonFile('orders.json', orders);
+
+    const messages = readJsonFile('messages.json');
+    messages.push({
+        id: Date.now() + 1,
+        userId: user.id,
+        userEmail: user.email,
+        orderId: entry.id,
+        message: `A new order has been created: ${entry.title}.`,
+        type: 'order-created',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email,
+        read: false
+    });
+    writeJsonFile('messages.json', messages);
+
+    saveLog({
+        eventType: 'admin_order_created',
+        details: `Order ${entry.id} created for ${user.email}`,
+        user: req.admin.email
+    });
+
+    res.json({ success: true, order: entry });
+});
+
+app.patch('/api/admin/orders/:orderId/status', authenticateAdminRoute, (req, res) => {
+    const { status, paymentStatus } = req.body;
+    if (status && !ORDER_STATUSES.includes(status)) {
+        return res.status(400).json({ success: false, error: 'Invalid order status' });
+    }
+
+    const orders = readJsonFile('orders.json');
+    const orderIndex = orders.findIndex(order => String(order.id) === String(req.params.orderId));
+    if (orderIndex === -1) return res.status(404).json({ success: false, error: 'Order not found' });
+
+    orders[orderIndex] = {
+        ...orders[orderIndex],
+        status: status || orders[orderIndex].status,
+        paymentStatus: paymentStatus || orders[orderIndex].paymentStatus || 'pending',
+        updatedAt: new Date().toISOString(),
+        updatedBy: req.admin.email
+    };
+    writeJsonFile('orders.json', orders);
+
+    const messages = readJsonFile('messages.json');
+    messages.push({
+        id: Date.now(),
+        userId: orders[orderIndex].userId,
+        userEmail: orders[orderIndex].userEmail || orders[orderIndex].email,
+        orderId: orders[orderIndex].id,
+        message: `Your order "${orders[orderIndex].title || orders[orderIndex].service || orders[orderIndex].id}" is now ${orders[orderIndex].status}.`,
+        type: 'status-update',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email,
+        read: false
+    });
+    writeJsonFile('messages.json', messages);
+
+    res.json({ success: true, order: orders[orderIndex] });
+});
+
+app.post('/api/admin/users/:id/deliveries', authenticateAdminRoute, async (req, res) => {
+    const { fileName, fileUrl, orderId, type, status } = req.body;
+    if (!fileName || !fileUrl) {
+        return res.status(400).json({ success: false, error: 'fileName and fileUrl are required' });
+    }
+
+    const user = await findUserByIdentifier(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const deliveries = readJsonFile('deliveries.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        orderId: orderId || null,
+        fileName,
+        fileUrl,
+        type: type || 'other',
+        status: status || 'available',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email
+    };
+    deliveries.push(entry);
+    writeJsonFile('deliveries.json', deliveries);
+
+    res.json({ success: true, delivery: entry });
+});
+
+app.post('/api/admin/users/:id/messages', authenticateAdminRoute, async (req, res) => {
+    const { message, orderId } = req.body;
+    if (!message || message.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+
+    const user = await findUserByIdentifier(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const messages = readJsonFile('messages.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        orderId: orderId || null,
+        message: message.trim(),
+        type: 'admin-message',
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email,
+        read: false
+    };
+    messages.push(entry);
+    writeJsonFile('messages.json', messages);
+
+    res.json({ success: true, message: entry });
+});
+
+app.post('/api/admin/users/:id/notes', authenticateAdminRoute, async (req, res) => {
+    const { note, orderId } = req.body;
+    if (!note || note.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'Note is required' });
+    }
+
+    const user = await findUserByIdentifier(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const notes = readJsonFile('admin-notes.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        orderId: orderId || null,
+        note: note.trim(),
+        createdAt: new Date().toISOString(),
+        createdBy: req.admin.email
+    };
+    notes.push(entry);
+    writeJsonFile('admin-notes.json', notes);
+
+    res.json({ success: true, note: entry });
+});
+
 app.delete('/admin/logs', authenticateAdminRoute, (req, res) => {
     const logsPath = path.join(__dirname, 'logs.json');
-    
+
     try {
         fs.writeFileSync(logsPath, '[]', 'utf-8');
-        saveLog({ 
-            eventType: 'logs_cleared', 
-            details: 'Admin cleared all logs', 
-            user: req.admin.email 
+        saveLog({
+            eventType: 'logs_cleared',
+            details: 'Admin cleared all logs',
+            user: req.admin.email
         });
         res.json({ success: true, message: 'Logs cleared successfully' });
     } catch (error) {
@@ -854,16 +1514,14 @@ app.delete('/admin/logs', authenticateAdminRoute, (req, res) => {
 });
 
 // ---------- User Profile Routes ----------
-app.get('/api/user/profile', authenticateUser, (req, res) => {
+app.get('/api/user/profile', authenticateUser, async (req, res) => {
     try {
-        const users = readUsers();
-        const user = users.find(u => u.email === req.user.email);
-        
+        const user = await findUserByEmail(req.user.email);
+
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        // Return user profile without sensitive data
         const profile = {
             id: user.id,
             name: user.name,
@@ -888,14 +1546,12 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
     }
 
     try {
-        const users = readUsers();
-        const userIndex = users.findIndex(u => u.email === req.user.email);
-        
-        if (userIndex === -1) {
+        const user = await findUserByEmail(req.user.email);
+
+        if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        // If changing password, verify current password
         if (newPassword) {
             if (!currentPassword) {
                 return res.status(400).json({ success: false, error: 'Current password is required to change password' });
@@ -905,39 +1561,126 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
                 return res.status(400).json({ success: false, error: 'New password must be at least 6 characters' });
             }
 
-            const validCurrentPassword = await bcrypt.compare(currentPassword, users[userIndex].password);
+            const validCurrentPassword = await bcrypt.compare(currentPassword, user.password);
             if (!validCurrentPassword) {
                 return res.status(400).json({ success: false, error: 'Current password is incorrect' });
             }
 
-            users[userIndex].password = await bcrypt.hash(newPassword, 12);
-        }
-
-        // Update profile
-        users[userIndex].name = name.trim();
-        users[userIndex].updatedAt = new Date().toISOString();
-
-        if (saveUsers(users)) {
-            saveLog({
-                eventType: 'profile_updated',
-                details: `Profile updated for ${req.user.email}${newPassword ? ' (password changed)' : ''}`,
-                user: req.user.email
+            await updateUser(req.user.email, {
+                password: await bcrypt.hash(newPassword, 12)
             });
-
-            res.json({ success: true, message: 'Profile updated successfully' });
-        } else {
-            throw new Error('Failed to save user data');
         }
+
+        await updateUser(req.user.email, {
+            name: name.trim(),
+            updatedAt: new Date().toISOString()
+        });
+
+        saveLog({
+            eventType: 'profile_updated',
+            details: `Profile updated for ${req.user.email}${newPassword ? ' (password changed)' : ''}`,
+            user: req.user.email
+        });
+
+        res.json({ success: true, message: 'Profile updated successfully' });
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
+app.get('/api/user/workspace', authenticateUser, async (req, res) => {
+    try {
+        const user = await findUserByEmail(req.user.email);
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        const snapshot = await buildOperationsSnapshot(user);
+        res.json({ success: true, user: sanitizeUser(user), ...snapshot });
+    } catch (error) {
+        console.error('Error loading user workspace:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+app.post('/api/user/service-request', authenticateUser, async (req, res) => {
+    const { service, message } = req.body;
+
+    if (!service || !message || message.trim().length < 10) {
+        return res.status(400).json({ success: false, error: 'Service and a clear message are required.' });
+    }
+
+    const user = await findUserByEmail(req.user.email);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const requests = readJsonFile('contacts.json');
+    const entry = {
+        id: Date.now(),
+        userId: user.id,
+        userEmail: user.email,
+        name: user.name,
+        email: user.email,
+        service,
+        message: message.trim(),
+        status: 'new',
+        timestamp: new Date().toISOString()
+    };
+    requests.push(entry);
+    writeJsonFile('contacts.json', requests);
+
+    saveLog({
+        eventType: 'dashboard_service_request',
+        details: `Dashboard request for ${service}`,
+        user: user.email
+    });
+
+    res.json({ success: true, request: entry });
+});
+
+app.post('/api/user/feedback', authenticateUser, (req, res) => {
+    const { feedback } = req.body;
+
+    if (!feedback || feedback.trim().length < 10) {
+        return res.status(400).json({ success: false, error: 'Feedback must be at least 10 characters.' });
+    }
+
+    const feedbackPath = path.join(__dirname, 'feedback.json');
+    let feedbackItems = [];
+
+    if (fs.existsSync(feedbackPath)) {
+        try {
+            feedbackItems = JSON.parse(fs.readFileSync(feedbackPath, 'utf-8'));
+        } catch (error) {
+            console.error('Error reading feedback.json:', error);
+        }
+    }
+
+    const entry = {
+        id: Date.now(),
+        name: req.user.name || req.user.email,
+        email: req.user.email,
+        feedback: feedback.trim(),
+        status: 'pending-review',
+        submittedAt: new Date().toISOString()
+    };
+
+    feedbackItems.push(entry);
+    fs.writeFileSync(feedbackPath, JSON.stringify(feedbackItems, null, 2));
+
+    saveLog({
+        eventType: 'dashboard_feedback_submitted',
+        details: 'Client submitted dashboard feedback',
+        user: req.user.email
+    });
+
+    res.json({ success: true, message: 'Feedback submitted for review.' });
+});
+
 // ---------- Socket.IO Connection ----------
 io.on('connection', (socket) => {
     console.log('Socket connected:', socket.id);
-    
+
     socket.on('join_admin', (token) => {
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
@@ -949,7 +1692,7 @@ io.on('connection', (socket) => {
             console.error('Invalid admin token for socket:', error);
         }
     });
-    
+
     socket.on('disconnect', () => {
         console.log('Socket disconnected:', socket.id);
     });
@@ -957,8 +1700,8 @@ io.on('connection', (socket) => {
 
 // ---------- Health Check Endpoint ----------
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         version: process.env.npm_package_version || '1.0.0'
@@ -966,12 +1709,12 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
         services: {
-            database: 'OK',
-            email: transporter ? 'OK' : 'Error',
+            database: dbAvailable ? 'OK' : 'Not available',
+            email: transporter ? 'OK' : 'Not configured',
             socket: 'OK'
         }
     });
@@ -979,7 +1722,7 @@ app.get('/api/health', (req, res) => {
 
 // ---------- Static File Routes ----------
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'web.html'));
 });
 
 app.get('/admin', (req, res) => {
@@ -997,7 +1740,7 @@ app.get('/dashboard', authenticateUser, (req, res) => {
 // ---------- Error Handling Middleware ----------
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    
+
     saveLog({
         eventType: 'server_error',
         details: `${err.message} - ${req.method} ${req.path}`,
@@ -1012,9 +1755,9 @@ app.use((err, req, res, next) => {
         return res.status(413).json({ success: false, error: 'Request entity too large' });
     }
 
-    res.status(500).json({ 
-        success: false, 
-        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
+    res.status(500).json({
+        success: false,
+        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
     });
 });
 
@@ -1036,20 +1779,20 @@ app.use('*', (req, res) => {
 // ---------- Graceful Shutdown ----------
 function gracefulShutdown(signal) {
     console.log(`\n${signal} received. Starting graceful shutdown...`);
-    
+
     server.close(() => {
         console.log('HTTP server closed.');
-        
+
         // Close Socket.IO server
         io.close(() => {
             console.log('Socket.IO server closed.');
-            
+
             saveLog({
                 eventType: 'server_shutdown',
                 details: `Server shutdown via ${signal}`,
                 user: 'system'
             });
-            
+
             console.log('Graceful shutdown completed.');
             process.exit(0);
         });
@@ -1065,31 +1808,40 @@ function gracefulShutdown(signal) {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-app.post('/api/log', (req, res) => {
-    const { eventType, details, user } = req.body;
-    if (!eventType || !user) return res.status(400).json({ success: false, error: 'Missing log info' });
-
-    saveLog({ eventType, details, user });
-    res.json({ success: true });
-});
-
 
 // ---------- Start Server ----------
-server.listen(PORT, async () => {
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Stop the duplicate PM2/process instance or set a different PORT.`);
+    } else {
+        console.error('Server startup error:', error);
+    }
+    process.exit(1);
+});
+
+server.listen(PORT, '0.0.0.0', async () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
-    console.log(`📧 Email service: ${process.env.EMAIL_USER ? 'Configured' : 'Not configured'}`);
-    console.log(`🔒 JWT Secret: ${JWT_SECRET !== 'your_fallback_secret' ? 'Custom' : 'Default (Change in production!)'}`);
+    console.log(`📧 Email service: ${emailEnabled ? 'Configured' : 'Not configured'}`);
+    console.log(`🔒 JWT Secret: ${process.env.JWT_SECRET ? 'Configured' : 'Development fallback'}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    
+    console.log(`🗄️  Database config: ${dbEnabled ? 'PostgreSQL' : 'JSON fallback'}`);
+
+    if (dbEnabled) {
+        const dbInitialized = await syncDatabase();
+        if (!dbInitialized) {
+            markDatabaseUnavailable();
+        }
+    }
+
     // Create/Update admin user on server start
     await createOrUpdateAdmin();
-    
+
     // Log server startup
     saveLog({
         eventType: 'server_startup',
         details: `Server started on port ${PORT}`,
         user: 'system'
     });
-    
+
     console.log('🚀 Server initialization completed!');
 });

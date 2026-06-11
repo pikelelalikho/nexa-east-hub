@@ -17,16 +17,7 @@
             <p>Already have an account? <a href="login.html">Log in</a></p>
         </form>
     </section>
-    <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-
-  socket.on('new_log', (data) => {
-    console.log('📥 New log received:', data);
-    // Optionally update the UI with the log
-  });
-</script>
-
-    <script src="script.js"></script>
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>

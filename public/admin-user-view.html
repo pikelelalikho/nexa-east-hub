@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Operations - NEXA East Hub</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --soft: #eef4ff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e2ef;
+      --primary: #2563eb;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    header,
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.4rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    a,
+    button {
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 0.58rem 0.85rem;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    button.primary,
+    a.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+
+    .card h2 {
+      font-size: 1.08rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .item {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      margin-top: 0.65rem;
+    }
+
+    .item h3 {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .status {
+      display: inline-flex;
+      margin-top: 0.45rem;
+      border-radius: 999px;
+      padding: 0.18rem 0.58rem;
+      color: #ffffff;
+      background: var(--warning);
+      font-size: 0.76rem;
+      font-weight: 900;
+    }
+
+    .status.completed,
+    .status.delivered {
+      background: var(--success);
+    }
+
+    .status.cancelled {
+      background: var(--danger);
+    }
+
+    form {
+      display: grid;
+      gap: 0.72rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.25rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.72rem;
+      font: inherit;
+      color: var(--text);
+      background: var(--panel);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.72rem;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .empty,
+    .notice,
+    .error {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 0.9rem;
+      background: var(--soft);
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--danger);
+      border-color: rgba(220, 38, 38, 0.25);
+    }
+
+    @media (max-width: 900px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .layout,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Client Operations</h1>
+      <p class="muted">Create orders, update statuses, send messages, and add URL-based deliveries for a client.</p>
+    </div>
+    <nav>
+      <a href="admin-dashboard.html">Back to Admin</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="stateMessage" class="notice">Loading client workspace...</div>
+    <div class="layout">
+      <aside class="stack">
+        <section class="card">
+          <h2>Client Profile</h2>
+          <div id="profilePanel"></div>
+        </section>
+
+        <section class="card">
+          <h2>Service Requests</h2>
+          <div id="requestsPanel"></div>
+        </section>
+
+        <section class="card">
+          <h2>Feedback</h2>
+          <div id="feedbackPanel"></div>
+        </section>
+
+        <section class="card">
+          <h2>Admin Notes</h2>
+          <form id="noteForm">
+            <label>Note<textarea name="note" placeholder="Internal note for this client..." required></textarea></label>
+            <button type="submit" class="primary">Add Note</button>
+          </form>
+          <div id="notesPanel"></div>
+        </section>
+      </aside>
+
+      <div class="stack">
+        <section class="card">
+          <h2>Create Order</h2>
+          <form id="createOrderForm" class="form-grid">
+            <label>Order Title<input name="title" placeholder="Studio Recording Session" required /></label>
+            <label>Service
+              <select name="service">
+                <option>IT Support & Computer Services</option>
+                <option>Digital Skills & Training</option>
+                <option>Business & Automation Solutions</option>
+                <option>Design & Creative Services</option>
+                <option>Online Assistance Services</option>
+                <option>Music Production</option>
+                <option>Music Studio Services</option>
+              </select>
+            </label>
+            <label>Status
+              <select name="status">
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="ready">Ready</option>
+                <option value="ready-for-download">Ready for Download</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            <label>Payment Status
+              <select name="paymentStatus">
+                <option value="pending">Pending</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+              </select>
+            </label>
+            <label class="full">Description<textarea name="description" placeholder="Order notes, scope, session details..."></textarea></label>
+            <button type="submit" class="primary">Create Order</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Client Orders</h2>
+          <div id="ordersPanel"></div>
+        </section>
+
+        <section class="card">
+          <h2>Update Order Status</h2>
+          <form id="statusForm" class="form-grid">
+            <label>Order ID<select name="orderId" id="statusOrderSelect" required></select></label>
+            <label>Status
+              <select name="status" required>
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="ready">Ready</option>
+                <option value="ready-for-download">Ready for Download</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </label>
+            <label>Payment Status
+              <select name="paymentStatus">
+                <option value="pending">Pending</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+              </select>
+            </label>
+            <button type="submit" class="primary">Update Status</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Add Delivery / Download URL</h2>
+          <form id="deliveryForm" class="form-grid">
+            <label>Order ID<select name="orderId" id="deliveryOrderSelect"></select></label>
+            <label>Type
+              <select name="type">
+                <option value="music">Music</option>
+                <option value="design">Design</option>
+                <option value="document">Document</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>File Name<input name="fileName" placeholder="final-master.wav" required /></label>
+            <label>File URL<input name="fileUrl" placeholder="/downloads/final-master.wav" required /></label>
+            <label>Status
+              <select name="status">
+                <option value="available">Available</option>
+                <option value="delivered">Delivered</option>
+              </select>
+            </label>
+            <button type="submit" class="primary">Add Delivery</button>
+          </form>
+          <div id="deliveriesPanel"></div>
+        </section>
+
+        <section class="card">
+          <h2>Send Message / Update</h2>
+          <form id="messageForm">
+            <label>Order ID<select name="orderId" id="messageOrderSelect"></select></label>
+            <label>Message<textarea name="message" placeholder="Write an update for the client dashboard..." required></textarea></label>
+            <button type="submit" class="primary">Send Message</button>
+          </form>
+          <div id="messagesPanel"></div>
+        </section>
+
+        <section class="card">
+          <h2>Client Uploads</h2>
+          <div id="uploadsPanel"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    let userId = params.get('userId') || params.get('user');
+    const token = localStorage.getItem('adminToken') || '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    let workspace = null;
+
+    function $(id) { return document.getElementById(id); }
+
+    function fmtDate(value) {
+      if (!value) return 'Not recorded';
+      return new Date(value).toLocaleString();
+    }
+
+    function status(value) {
+      const normalized = String(value || 'pending').toLowerCase();
+      return `<span class="status ${normalized}">${normalized}</span>`;
+    }
+
+    function item(title, body, badge = '') {
+      return `<article class="item"><h3>${title}</h3><p>${body}</p>${badge ? status(badge) : ''}</article>`;
+    }
+
+    function empty(text) {
+      return `<div class="empty">${text}</div>`;
+    }
+
+    function setState(message = '', type = 'notice') {
+      const target = $('stateMessage');
+      target.textContent = message;
+      target.className = type;
+      target.style.display = message ? 'block' : 'none';
+    }
+
+    async function ensureUserId() {
+      if (userId) return userId;
+      const response = await fetch('/api/admin/users', { headers });
+      const data = await response.json();
+      if (!response.ok || !data.success || !data.users?.length) throw new Error('No users available to manage.');
+      userId = data.users[0].id || data.users[0].email;
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set('userId', userId);
+      window.history.replaceState({}, '', nextUrl);
+      return userId;
+    }
+
+    async function loadWorkspace() {
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      setState('Loading client workspace...');
+      await ensureUserId();
+      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/workspace`, { headers });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error || 'Unable to load client workspace.');
+      workspace = data;
+      setState('');
+      render();
+    }
+
+    function renderOrderOptions() {
+      const options = '<option value="">No order selected</option>' + (workspace.orders || []).map(order => `<option value="${order.id}">${order.title || order.service || order.id}</option>`).join('');
+      $('statusOrderSelect').innerHTML = options.replace('<option value="">No order selected</option>', '');
+      $('deliveryOrderSelect').innerHTML = options;
+      $('messageOrderSelect').innerHTML = options;
+    }
+
+    function render() {
+      const user = workspace.user || {};
+      $('profilePanel').innerHTML = item(user.name || 'Client', `${user.email || ''}<br>Role: ${user.role || 'user'}<br>Status: ${user.isActive === false ? 'Disabled' : 'Active'}`);
+      $('requestsPanel').innerHTML = workspace.requests?.length ? workspace.requests.map(req => item(req.service || 'Service Request', `${req.message || ''}<br><span class="muted">${fmtDate(req.timestamp || req.createdAt)}</span>`, req.status || 'new')).join('') : empty('No service requests for this client.');
+      $('ordersPanel').innerHTML = workspace.orders?.length ? workspace.orders.map(order => item(order.title || order.service || `Order ${order.id}`, `ID: ${order.id}<br>Service: ${order.service || 'General'}<br>Payment: ${order.paymentStatus || 'pending'}<br>${order.description || ''}`, order.status || 'pending')).join('') : empty('No orders yet. Create the first order above.');
+      $('deliveriesPanel').innerHTML = workspace.deliveries?.length ? workspace.deliveries.map(file => item(file.fileName || 'Delivery file', `Type: ${file.type || 'other'}<br>Order: ${file.orderId || 'General'}<br><a href="${file.fileUrl}" target="_blank" rel="noopener">${file.fileUrl}</a>`, file.status || 'available')).join('') : empty('No URL-based deliveries added yet.');
+      $('uploadsPanel').innerHTML = workspace.uploads?.length ? workspace.uploads.map(file => item(file.fileName || 'Uploaded file', fmtDate(file.createdAt || file.uploadedAt), file.status || '')).join('') : empty('No client uploads yet.');
+      $('feedbackPanel').innerHTML = workspace.feedback?.length ? workspace.feedback.map(feedback => item('Feedback', feedback.feedback, feedback.status || 'pending-review')).join('') : empty('No feedback submitted.');
+      $('notesPanel').innerHTML = workspace.notes?.length ? workspace.notes.map(note => item('Internal Note', `${note.note}<br><span class="muted">${fmtDate(note.createdAt)}</span>`)).join('') : empty('No admin notes yet.');
+      $('messagesPanel').innerHTML = workspace.messages?.length ? workspace.messages.map(message => item(message.type || 'Message', `${message.message}<br><span class="muted">${fmtDate(message.createdAt)}</span>`, message.read ? 'read' : 'unread')).join('') : empty('No messages sent yet.');
+      renderOrderOptions();
+    }
+
+    async function submitJson(url, method, payload) {
+      const response = await fetch(url, { method, headers, body: JSON.stringify(payload) });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error || 'Request failed.');
+      await loadWorkspace();
+      return data;
+    }
+
+    $('createOrderForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        await submitJson(`/api/admin/users/${encodeURIComponent(userId)}/orders`, 'POST', {
+          title: form.title.value,
+          service: form.service.value,
+          description: form.description.value,
+          status: form.status.value,
+          paymentStatus: form.paymentStatus.value
+        });
+        form.reset();
+        alert('Order created for client.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $('statusForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        await submitJson(`/api/admin/orders/${encodeURIComponent(form.orderId.value)}/status`, 'PATCH', {
+          status: form.status.value,
+          paymentStatus: form.paymentStatus.value
+        });
+        alert('Order status updated and client message created.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $('deliveryForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        await submitJson(`/api/admin/users/${encodeURIComponent(userId)}/deliveries`, 'POST', {
+          orderId: form.orderId.value,
+          type: form.type.value,
+          fileName: form.fileName.value,
+          fileUrl: form.fileUrl.value,
+          status: form.status.value
+        });
+        form.reset();
+        alert('Delivery URL added for client.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $('messageForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        await submitJson(`/api/admin/users/${encodeURIComponent(userId)}/messages`, 'POST', {
+          orderId: form.orderId.value,
+          message: form.message.value
+        });
+        form.reset();
+        alert('Message sent to client dashboard.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $('noteForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        await submitJson(`/api/admin/users/${encodeURIComponent(userId)}/notes`, 'POST', { note: form.note.value });
+        form.reset();
+        alert('Admin note saved.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    loadWorkspace().catch(error => {
+      console.error(error);
+      setState(error.message || 'Unable to load client workspace.', 'error');
+    });
+  </script>
+</body>
+</html>

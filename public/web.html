@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NEXA East Hub (Pty) Ltd - Internet Café & Tech Services | Cape Town, Johannesburg</title>
-  <meta name="description" content="Professional internet café and tech services in Cape Town and in Johannesburg. Computer repairs, training, graphic design, and AI solutions." />
+  <title>NEXA East Hub (Pty) Ltd - Digital Solutions & IT Services</title>
+  <meta name="description" content="Professional digital solutions, IT support, business automation, computer training, design services, and online assistance for individuals and small businesses." />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -13,19 +13,26 @@
     <!-- Navigation -->
     <nav class="navbar" role="navigation" aria-label="Main Navigation">
       <div class="nav-container">
-        <div class="logo" tabindex="0">NEXA East Hub</div>
+        <div class="brand">
+          <div class="logo-placeholder" aria-hidden="true">
+            <i class="fas fa-gem"></i>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">NEXA East Hub</span>
+            <span class="brand-tag">Cape Town • Johannesburg • Springs</span>
+          </div>
+        </div>
         <button type="button" aria-label="Toggle menu" class="mobile-menu-toggle" id="mobileMenuToggle" aria-expanded="false" aria-controls="navMenu">
           <span></span>
           <span></span>
           <span></span>
         </button>
         <ul id="navMenu" class="nav-menu">
-          <li><a href="index.html" class="nav-link">Back</a></li>
           <li><a href="#services" class="nav-link">Services</a></li>
           <li><a href="#about" class="nav-link">About</a></li>
           <li><a href="#contact" class="nav-link">Contact</a></li>
-          <li id="authLinks">
-            <!-- JS will inject login/signup or dashboard/logout here -->
+          <li id="authLinks" class="profile-menu" aria-haspopup="true">
+            <!-- JS will inject login/signup or profile dropdown here -->
           </li>
         </ul>
       </div>
@@ -37,16 +44,16 @@
     <section id="home" class="hero" tabindex="-1" aria-label="Hero Section">
       <div class="hero-content">
         <h1>NEXA East Hub</h1>
-        <p>Your Premier Internet Café & Tech Services Partner in Cape Town & in Johannesburg</p>
-        <p>From computer repairs to AI solutions, we've got all your technology needs covered with professional service and expert support.</p>
+        <p>NEXA East Hub provides practical IT support, digital services, business automation, and creative technology solutions for individuals, students, entrepreneurs, and small businesses.</p>
+        <p>Get reliable help with everyday technology, online tasks, business systems, digital skills, and professional creative support.</p>
         <div class="cta-buttons">
           <a href="#contact" class="btn btn-primary" role="button">
             <i class="fas fa-phone" aria-hidden="true"></i>
-            Get a Quote
+            Request a Service
           </a>
           <a href="#services" class="btn btn-secondary" role="button">
             <i class="fas fa-arrow-down" aria-hidden="true"></i>
-            Our Services
+            View Solutions
           </a>
         </div>
       </div>
@@ -55,148 +62,134 @@
     <!-- Services Section -->
     <section id="services" class="section" aria-labelledby="servicesTitle">
       <div class="section-header">
-        <h2 id="servicesTitle" class="section-title">Our Services</h2>
-        <p class="section-subtitle">Comprehensive technology solutions designed to meet all your digital needs with professional excellence and reliability.</p>
+        <h2 id="servicesTitle" class="section-title">Digital Solutions and IT Services</h2>
+        <p class="section-subtitle">Professional support for people and small teams that need practical technology, training, automation, and creative delivery.</p>
       </div>
       <div class="services-grid" role="list">
         <article class="service-card" role="listitem" tabindex="0">
-          <div class="service-icon"><i class="fas fa-wifi" aria-hidden="true"></i></div>
-          <h3>Internet Café Services</h3>
-          <p>Complete internet access and office services for all your digital needs.</p>
+          <div class="service-icon"><i class="fas fa-screwdriver-wrench" aria-hidden="true"></i></div>
+          <h3>IT Support & Computer Services</h3>
+          <p>Reliable help with setup, troubleshooting, software installation, maintenance, security, and device performance.</p>
           <ul class="service-features">
-            <li>High-speed internet browsing</li>
-            <li>Professional printing services</li>
-            <li>Document scanning & copying</li>
-            <li>Email and social media access</li>
+            <li>Computer setup and repairs</li>
+            <li>Software support and updates</li>
+            <li>Device security and maintenance</li>
           </ul>
-        </article>
-        <article class="service-card" role="listitem" tabindex="0">
-          <div class="service-icon"><i class="fas fa-tools" aria-hidden="true"></i></div>
-          <h3>Computer Repairs & Software</h3>
-          <p>Expert technical support to keep your devices running smoothly.</p>
-          <ul class="service-features">
-            <li>Windows updates & maintenance</li>
-            <li>Hardware troubleshooting</li>
-            <li>Software installation & setup</li>
-            <li>Virus removal & security</li>
-          </ul>
+          <a href="#contact" class="service-cta">Request Support</a>
         </article>
         <article class="service-card" role="listitem" tabindex="0">
           <div class="service-icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></div>
-          <h3>Computer Literacy Training</h3>
-          <p>Comprehensive IT education to boost your digital skills and confidence.</p>
+          <h3>Digital Skills & Training</h3>
+          <p>Clear, step-by-step computer literacy and productivity training for students, job seekers, teams, and community members.</p>
           <ul class="service-features">
-            <li>Basic IT fundamentals</li>
-            <li>Microsoft Office training</li>
-            <li>Typing skills improvement</li>
-            <li>Internet navigation basics</li>
+            <li>Computer literacy basics</li>
+            <li>Email, typing, and online tools</li>
+            <li>Microsoft Office and productivity</li>
           </ul>
+          <a href="#contact" class="service-cta">Book Training</a>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-gears" aria-hidden="true"></i></div>
+          <h3>Business & Automation Solutions</h3>
+          <p>Practical digital systems that help small businesses reduce manual work, improve communication, and stay organized.</p>
+          <ul class="service-features">
+            <li>Workflow and task automation</li>
+            <li>Chatbot and AI-assisted tools</li>
+            <li>Simple client and order systems</li>
+          </ul>
+          <a href="#contact" class="service-cta">Discuss Automation</a>
         </article>
         <article class="service-card" role="listitem" tabindex="0">
           <div class="service-icon"><i class="fas fa-palette" aria-hidden="true"></i></div>
-          <h3>Graphic Design</h3>
-          <p>Creative design solutions to make your brand stand out professionally.</p>
+          <h3>Design & Creative Services</h3>
+          <p>Professional visuals for brands, promotions, events, artists, and businesses that need clear presentation.</p>
           <ul class="service-features">
-            <li>Eye-catching poster design</li>
-            <li>Professional flyers & brochures</li>
-            <li>Business cards & stationery</li>
-            <li>Social media graphics</li>
+            <li>Flyers, posters, and social content</li>
+            <li>Brand visuals and business cards</li>
+            <li>Music and creative campaign assets</li>
           </ul>
+          <a href="#contact" class="service-cta">Start a Design Request</a>
         </article>
         <article class="service-card" role="listitem" tabindex="0">
-          <div class="service-icon"><i class="fas fa-image" aria-hidden="true"></i></div>
-          <h3>Photo Editing & Branding</h3>
-          <p>Professional image enhancement and personal branding services.</p>
+          <div class="service-icon"><i class="fas fa-handshake-angle" aria-hidden="true"></i></div>
+          <h3>Online Assistance Services</h3>
+          <p>Guided support for online forms, documents, applications, digital accounts, and everyday web-based tasks.</p>
           <ul class="service-features">
-            <li>Profile photo enhancement</li>
-            <li>Personal branding visuals</li>
-            <li>Image touch-ups & restoration</li>
-            <li>Logo design & brand identity</li>
+            <li>Online applications and forms</li>
+            <li>Document preparation support</li>
+            <li>Account setup and digital guidance</li>
           </ul>
+          <a href="#contact" class="service-cta">Get Assistance</a>
         </article>
-        <article class="service-card" role="listitem" tabindex="0">
-          <div class="service-icon"><i class="fas fa-robot" aria-hidden="true"></i></div>
-          <h3>AI Tools & Chatbot Services</h3>
-          <p>Cutting-edge AI solutions to automate and enhance your business operations.</p>
-          <ul class="service-features">
-            <li>Custom chatbot development</li>
-            <li>AI-powered resume builders</li>
-            <li>Image generation tools</li>
-            <li>Business automation solutions</li>
-          </ul>
-        </article>
-        <article class="service-card" role="listitem" tabindex="0">
-          <div class="service-icon"><i class="fas fa-paint-brush" aria-hidden="true"></i></div>
-          <h3>Graphic Design</h3>
-          <p>Creative visuals to boost your personal or business brand identity.</p>
-          <ul class="service-features">
-            <li>Logo and flyer design</li>
-            <li>Poster and ad banners</li>
-            <li>Brand kits & style guides</li>
-            <li>Social media templates</li>
-          </ul>
-        </article>
-
         <article class="service-card" role="listitem" tabindex="0">
           <div class="service-icon"><i class="fas fa-music" aria-hidden="true"></i></div>
-          <h3>Music Branding</h3>
-          <p>Visual design services for musicians and creatives.</p>
+          <h3>Music Production</h3>
+          <p>Creative production support for artists who need polished, release-ready sound and professional project guidance.</p>
           <ul class="service-features">
-            <li>Cover art design</li>
-            <li>Artist promo kits</li>
-            <li>Event & release banners</li>
-            <li>Social media visuals</li>
+            <li>Beat production and arrangement</li>
+            <li>Recording session preparation</li>
+            <li>Mixing, mastering, and release support</li>
           </ul>
+          <a href="#contact" class="service-cta">Start a Music Project</a>
+        </article>
+        <article class="service-card" role="listitem" tabindex="0">
+          <div class="service-icon"><i class="fas fa-microphone-lines" aria-hidden="true"></i></div>
+          <h3>Music Studio Services</h3>
+          <p>Studio-focused support for recording, vocal work, demos, podcast audio, and artist development needs.</p>
+          <ul class="service-features">
+            <li>Vocal recording and editing</li>
+            <li>Demo and promo audio support</li>
+            <li>Artist branding and studio coordination</li>
+          </ul>
+          <a href="#contact" class="service-cta">Book Studio Support</a>
         </article>
       </div>
     </section>
-        <!-- Customer Testimonials Section -->
-    <section class="testimonials-section" id="testimonials">
-  <div class="testimonials-container professional">
-    <h2 class="section-title">What People Are Saying</h2>
-    <p class="section-subtitle">Here are a few examples of how NEXA East Hub has made a difference:</p>
+    <section class="testimonials-section" id="testimonials" aria-labelledby="trustTitle">
+      <div class="testimonials-container professional">
+        <div class="trust-intro">
+          <h2 id="trustTitle" class="section-title">Trusted by Clients and Local Communities</h2>
+          <p class="section-subtitle">From computer support to digital training and business solutions, NEXA East Hub helps people use technology with confidence.</p>
+        </div>
 
-    <!-- Example Testimonials -->
-    <div class="testimonial-list">
-      <div class="testimonial-item">
-        <p class="testimonial-text">"I was struggling with my laptop, and NEXA East Hub fixed it quickly. Now I’m back to work and more productive than ever."</p>
-        <p class="testimonial-author">— Ayanda M., Computer Repairs</p>
+        <div class="testimonials-grid trust-grid" role="list">
+          <article class="testimonial-card trust-card" role="listitem" tabindex="0">
+            <div class="trust-icon"><i class="fas fa-laptop-medical" aria-hidden="true"></i></div>
+            <h3>Computer Support</h3>
+            <p class="testimonial-text">Responsive help for device setup, software issues, maintenance, printing, scanning, and everyday technical support.</p>
+          </article>
+          <article class="testimonial-card trust-card" role="listitem" tabindex="0">
+            <div class="trust-icon"><i class="fas fa-user-graduate" aria-hidden="true"></i></div>
+            <h3>Digital Skills Training</h3>
+            <p class="testimonial-text">Practical computer literacy support for students, job seekers, professionals, and community members building confidence online.</p>
+          </article>
+          <article class="testimonial-card trust-card" role="listitem" tabindex="0">
+            <div class="trust-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></div>
+            <h3>Business & Creative Support</h3>
+            <p class="testimonial-text">Design, branding, automation, and AI-assisted solutions that help small businesses and creatives work more effectively.</p>
+          </article>
+        </div>
+
+        <div class="trust-cta" aria-label="Client feedback options">
+          <p>Registered clients can share feedback from their dashboard.</p>
+          <div class="trust-actions">
+            <a href="user-dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+            <a href="signup.html" class="btn btn-outline">Create Account</a>
+          </div>
+        </div>
       </div>
-      <div class="testimonial-item">
-        <p class="testimonial-text">"Thanks to the computer literacy training, I can now type documents, send emails, and apply for jobs online. Highly recommended!"</p>
-        <p class="testimonial-author">— Sipho N., Digital Skills Training</p>
-      </div>
-      <div class="testimonial-item">
-        <p class="testimonial-text">"I needed a logo and branding for my music. NEXA East Hub delivered a clean, professional design that blew me away!"</p>
-        <p class="testimonial-author">— Thando B., Music Branding & Design</p>
-      </div>
-    </div>
+    </section>
 
-    <!-- Small Feedback Form (Optional) -->
-    <form id="testimonialForm" class="testimonial-form-minimal">
-      <label for="testimonialText">Your Testimonial:</label>
-      <textarea id="testimonialText" name="testimonialText" rows="3" placeholder="How did we help you?" required></textarea>
-
-      <label for="customerName">Your Name:</label>
-      <input type="text" id="customerName" name="customerName" placeholder="e.g. Nomsa L." required>
-
-      <button type="submit" class="btn-submit">
-        <i class="fas fa-paper-plane"></i> Submit Feedback
-      </button>
-    </form>
-  </div>
-</section>
-    
     <!-- About Section -->
     <section id="about" class="section about" aria-labelledby="aboutTitle">
       <div class="about-content">
         <h2 id="aboutTitle">About NEXA East Hub</h2>
-        <p>Located in the heart of Cape Town, NEXA East Hub (Pty) Ltd has been serving the community with comprehensive technology solutions since our establishment. We pride ourselves on being more than just an internet café – we're your complete digital partner.</p>
-        <p>Our experienced team combines technical expertise with exceptional customer service to deliver solutions that empower individuals and businesses to thrive in the digital age. From basic computer skills to advanced AI implementations, we're here to bridge the technology gap.</p>
+        <p>NEXA East Hub (Pty) Ltd provides practical technology support for people and businesses that need dependable digital help without unnecessary complexity.</p>
+        <p>Our work covers IT support, computer literacy, design assistance, automation, and accessible digital services. We focus on clear communication, reliable delivery, and solutions that fit real community and business needs.</p>
         <div class="about-stats">
           <div class="stat" tabindex="0">
             <span class="stat-number">500+</span>
-            <span class="stat-label">Happy Clients</span>
+            <span class="stat-label">Client Interactions</span>
           </div>
           <div class="stat" tabindex="0">
             <span class="stat-number">5+</span>
@@ -204,7 +197,7 @@
           </div>
           <div class="stat" tabindex="0">
             <span class="stat-number">6</span>
-            <span class="stat-label">Core Services</span>
+            <span class="stat-label">Service Areas</span>
           </div>
         </div>
       </div>
@@ -217,7 +210,7 @@
     <section id="contact" class="section contact" aria-labelledby="contactTitle">
       <div class="section-header">
         <h2 id="contactTitle" class="section-title">Get In Touch</h2>
-        <p class="section-subtitle">Ready to get started? Contact us today for a free consultation and discover how we can help transform your digital experience.</p>
+        <p class="section-subtitle">Tell us what you need help with, and we will recommend a practical next step.</p>
       </div>
 
       <div class="contact-content">
@@ -297,7 +290,7 @@ chosenblingrsa@gmail.com <br />
     <div class="footer-content">
       <div class="footer-section">
         <h4>NEXA East Hub (Pty) Ltd</h4>
-        <p>Your trusted technology partner in Cape Town/ Johannesburg, providing comprehensive digital solutions for individuals and businesses.</p>
+        <p>Your trusted digital solutions partner, providing IT support, training, automation, design, and online assistance for individuals and small businesses.</p>
         <div class="social-links" role="list">
           <a href="#" aria-label="Facebook" role="listitem" tabindex="0"><i class="fab fa-facebook-f"></i></a>
           <a href="#" aria-label="Instagram" role="listitem" tabindex="0"><i class="fab fa-instagram"></i></a>
@@ -314,11 +307,11 @@ chosenblingrsa@gmail.com <br />
       </div>
       <div class="footer-section">
         <h4>Services</h4>
-        <p><a href="#services">Internet Café</a></p>
-        <p><a href="#services">Computer Repairs</a></p>
-        <p><a href="#services">IT Training</a></p>
-        <p><a href="#services">Graphic Design</a></p>
-        <p><a href="#services">AI Solutions</a></p>
+        <p><a href="#services">IT Support</a></p>
+        <p><a href="#services">Digital Skills Training</a></p>
+        <p><a href="#services">Business Automation</a></p>
+        <p><a href="#services">Design Services</a></p>
+        <p><a href="#services">Online Assistance</a></p>
       </div>
       <div class="footer-section">
         <h4>Contact Info</h4>
@@ -329,7 +322,7 @@ chosenblingrsa@gmail.com <br />
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2025 NEXA East Hub (Pty) Ltd. All rights reserved. | Professional Technology Services in Cape Town</p>
+      <p>&copy; 2026 NEXA East Hub (Pty) Ltd. All rights reserved. | Digital Solutions and IT Services</p>
     </div>
   </footer>
 
@@ -337,124 +330,7 @@ chosenblingrsa@gmail.com <br />
     <p style="text-align:center; color: red; font-weight: bold;">Please enable JavaScript to fully experience this website.</p>
   </noscript>
 
-  <script>
-    // Check if user is logged in and update nav links accordingly
-    const user = JSON.parse(localStorage.getItem('loggedInUser'));
-    const authLinksContainer = document.getElementById('authLinks');
-
-    function updateAuthLinks() {
-      if (user && user.name) {
-        authLinksContainer.innerHTML = `
-          <a href="dashboard.html" class="nav-link">Dashboard</a>
-          <a href="#" class="nav-link" tabindex="-1">Signed in as ${user.name}</a>
-          <a href="#" class="nav-link" id="logoutBtn">Logout</a>
-        `;
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-      } else {
-        authLinksContainer.innerHTML = `
-          <a href="signup.html" class="nav-link">Sign Up</a>
-          <a href="login.html" class="nav-link">Login</a>
-        `;
-      }
-    }
-
-    function logout(event) {
-      event.preventDefault();
-      localStorage.removeItem('loggedInUser');
-      alert('You have been logged out.');
-      updateAuthLinks();
-    }
-
-    updateAuthLinks();
-
-    // Mobile menu toggle logic
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const navMenu = document.getElementById('navMenu');
-
-    mobileMenuToggle.addEventListener('click', () => {
-      const expanded = mobileMenuToggle.getAttribute('aria-expanded') === 'true' || false;
-      mobileMenuToggle.setAttribute('aria-expanded', !expanded);
-      navMenu.classList.toggle('active');
-    });
-
-
-  const socket = io();
-
-  socket.on('new_log', (data) => {
-    console.log('📥 New log received:', data);
-    // You could update a <ul> or <table> here with new logs
-  });
-
-      document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('testimonialForm');
-      const successMessage = document.getElementById('successMessage');
-      const testimonialsGrid = document.getElementById('testimonialsGrid');
-
-      successMessage.style.display = 'none'; // hide success message initially
-
-      // Helper to create testimonial card HTML element
-      function renderTestimonial(testimonial) {
-        const div = document.createElement('div');
-        div.classList.add('testimonial-item');
-        div.innerHTML = `
-          <h4>${testimonial.name} <small>(${testimonial.service})</small></h4>
-          <p>Rating: ${'⭐'.repeat(testimonial.rating)}</p>
-          <p>${testimonial.text}</p>
-          <small>Submitted on: ${new Date(testimonial.date).toLocaleDateString()}</small>
-        `;
-        return div;
-      }
-
-      // Load testimonials from localStorage and display
-      function loadTestimonials() {
-        const testimonials = JSON.parse(localStorage.getItem('testimonials') || '[]');
-        testimonialsGrid.innerHTML = '';
-        testimonials.forEach(t => {
-          testimonialsGrid.appendChild(renderTestimonial(t));
-        });
-      }
-
-      // Form submit handler
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const testimonial = {
-          name: form.customerName.value.trim(),
-          service: form.serviceUsed.value,
-          rating: form.rating.value,
-          text: form.testimonialText.value.trim(),
-          date: new Date().toISOString(),
-        };
-
-        // Save to localStorage
-        const testimonials = JSON.parse(localStorage.getItem('testimonials') || '[]');
-        testimonials.push(testimonial);
-        localStorage.setItem('testimonials', JSON.stringify(testimonials));
-
-        // Show success message
-        successMessage.style.display = 'block';
-
-        // Append new testimonial instantly
-        testimonialsGrid.appendChild(renderTestimonial(testimonial));
-
-        // Reset form & image preview if you have one
-        form.reset();
-        const imagePreview = document.getElementById('imagePreview');
-        if (imagePreview) imagePreview.innerHTML = '';
-      });
-
-      // Initial load
-      loadTestimonials();
-    });
-
-    // Example pseudo-code for client-side routing
-if (!knownRoute(path)) {
-  // dynamically render your 404 component or redirect to 404.html
-  window.location.href = "/404.html";
-}
-
-  </script>
+  <script src="/socket.io/socket.io.js" defer></script>
   <script src="script.js" defer></script>
-  <script src="/socket.io/socket.io.js"></script>
 </body>
 </html>

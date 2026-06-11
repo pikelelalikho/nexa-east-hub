@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <meta name="description" content="NEXA East Hub offers Internet Café services, computer repairs, IT training, graphic design, and AI solutions in Cape Town & in Johannesburg." />
+  <meta http-equiv="refresh" content="0;url=/" />
 
   <style>
     body {
@@ -103,22 +104,21 @@
     <h1>Welcome to NEXA East Hub</h1>
     <p>Your trusted partner for Internet Café services, Computer Repairs, IT Training, Graphic Design, and AI Solutions in Cape Town & in Johannesburg, Springs.</p>
     <div class="btn-group" role="navigation" aria-label="Main navigation">
-      <a href="web.html" class="btn">Enter Website</a>
-      <a href="signup.html" class="btn">Create Account</a>
-      <a href="login.html" class="btn">Login</a>
-      <a href="contact.html" class="btn">Contact Us</a>
+      <a href="/web.html" class="btn">Enter Website</a>
+      <a href="/signup.html" class="btn">Create Account</a>
+      <a href="/login.html" class="btn">Login</a>
+      <a href="/contact.html" class="btn">Contact Us</a>
     </div>
   </main>
   <footer>
     &copy; 2025 NEXA East Hub (Pty) Ltd. All rights reserved.
   </footer>
-  <script src="script.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     sendLog('page_visit', 'index.html');
   });
 </script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="script.js"></script>
+<script src="/socket.io/socket.io.js" defer></script>
+<script src="script.js" defer></script>
 </body>
 </html>

@@ -3,1421 +3,844 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard - NEXA East Hub</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-  
+  <title>Admin Operations - NEXA East Hub</title>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
-    /* =================================================================
-       ADMIN DASHBOARD VARIABLES & RESET
-       ================================================================= */
-    
     :root {
-      --primary-color: #2563eb;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --soft: #eef4ff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e2ef;
+      --primary: #2563eb;
       --primary-dark: #1d4ed8;
-      --primary-light: #3b82f6;
-      --secondary-color: #f97316;
-      --accent-color: #06b6d4;
-      --success-color: #10b981;
-      --warning-color: #f59e0b;
-      --error-color: #ef4444;
-      --info-color: #3b82f6;
-      
-      /* Light Mode */
-      --bg-primary: #f8fafc;
-      --bg-secondary: #ffffff;
-      --bg-tertiary: #f1f5f9;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --text-muted: #94a3b8;
-      --border-color: #e2e8f0;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      
-      /* Gradients */
-      --gradient-primary: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
-      --gradient-secondary: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-      --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-      --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-      --gradient-error: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-    }
-
-    /* Dark Mode Variables */
-    .dark {
-      --bg-primary: #0f172a;
-      --bg-secondary: #1e293b;
-      --bg-tertiary: #334155;
-      --text-primary: #f1f5f9;
-      --text-secondary: #cbd5e1;
-      --text-muted: #64748b;
-      --border-color: #334155;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
     }
 
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.6;
-      color: var(--text-primary);
-      background: var(--bg-primary);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
     }
 
-    /* =================================================================
-       ADMIN DASHBOARD LAYOUT
-       ================================================================= */
-
-    .admin-dashboard {
+    .shell {
       min-height: 100vh;
-      background: var(--bg-primary);
-      position: relative;
-    }
-
-    .dashboard-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      position: relative;
-    }
-
-    /* =================================================================
-       DASHBOARD HEADER
-       ================================================================= */
-
-    .dashboard-header {
-      background: var(--bg-secondary);
-      border-radius: 20px;
-      padding: 2.5rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border-color);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .dashboard-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: var(--gradient-primary);
-    }
-
-    .dashboard-header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .dashboard-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-      line-height: 1.2;
-    }
-
-    .dashboard-subtitle {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-
-    .dashboard-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .admin-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: var(--bg-tertiary);
-      border-radius: 12px;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      border: 1px solid var(--border-color);
-    }
-
-    .admin-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--gradient-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-      font-size: 0.875rem;
-    }
-
-    /* =================================================================
-       CONNECTION STATUS
-       ================================================================= */
-
-    .connection-status {
-      position: fixed;
-      top: 1.5rem;
-      right: 1.5rem;
-      z-index: 1000;
-      padding: 0.75rem 1.25rem;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow-lg);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      transform: translateY(-100px);
-      opacity: 0;
-    }
-
-    .connection-status.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .connection-status.connected {
-      background: rgba(16, 185, 129, 0.9);
-      color: white;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .connection-status.disconnected {
-      background: rgba(239, 68, 68, 0.9);
-      color: white;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .connection-status.connecting {
-      background: rgba(245, 158, 11, 0.9);
-      color: white;
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-
-    /* =================================================================
-       STATS CARDS
-       ================================================================= */
-
-    .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
+      grid-template-columns: 260px 1fr;
     }
 
-    .stat-card {
-      background: var(--bg-secondary);
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-xl);
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 1.25rem;
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--gradient-primary);
+      height: 100vh;
     }
 
-    .stat-card.success::before {
-      background: var(--gradient-success);
-    }
-
-    .stat-card.warning::before {
-      background: var(--gradient-warning);
-    }
-
-    .stat-card.error::before {
-      background: var(--gradient-error);
-    }
-
-    .stat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+    .brand {
       margin-bottom: 1.5rem;
     }
 
-    .stat-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .brand strong {
+      display: block;
+      color: var(--primary);
+      font-size: 1.2rem;
     }
 
-    .stat-icon {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 12px;
+    .brand span,
+    .muted {
+      color: var(--muted);
+    }
+
+    .tabs {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .tab-button {
+      width: 100%;
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+      text-align: left;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab-button:hover,
+    .tab-button.active {
+      background: var(--soft);
+      color: var(--primary);
+    }
+
+    main {
+      padding: 1.5rem;
+      min-width: 0;
+    }
+
+    header {
       display: flex;
+      justify-content: space-between;
+      gap: 1rem;
       align-items: center;
-      justify-content: center;
-      background: var(--bg-tertiary);
-      color: var(--primary-color);
-      font-size: 1.25rem;
-      font-weight: 600;
+      margin-bottom: 1.25rem;
     }
 
-    .stat-card.success .stat-icon {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--success-color);
+    h1 {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
     }
 
-    .stat-card.warning .stat-icon {
-      background: rgba(245, 158, 11, 0.1);
-      color: var(--warning-color);
+    .actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .stat-card.error .stat-icon {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--error-color);
+    button,
+    .button,
+    select,
+    input,
+    textarea {
+      font: inherit;
     }
 
-    .stat-value {
-      font-size: 2.5rem;
+    button,
+    .button {
+      min-height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.58rem 0.85rem;
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
       font-weight: 800;
-      color: var(--text-primary);
+    }
+
+    button.primary,
+    .button.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    button.primary:hover,
+    .button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      min-height: 96px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 800;
       margin-bottom: 0.5rem;
+    }
+
+    .stat strong {
+      font-size: 1.65rem;
       line-height: 1;
     }
 
-    .stat-change {
-      font-size: 0.875rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
     }
 
-    .stat-change.positive {
-      color: var(--success-color);
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
     }
 
-    .stat-change.negative {
-      color: var(--error-color);
-    }
-
-    /* =================================================================
-       CONTROL PANEL
-       ================================================================= */
-
-    .control-panel {
-      background: var(--bg-secondary);
-      border-radius: 16px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-    }
-
-    .control-header {
+    .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .control-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    .control-actions {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    /* =================================================================
-       BUTTONS
-       ================================================================= */
-
-    .admin-btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .admin-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .admin-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .admin-btn:hover:not(:disabled)::before {
-      left: 100%;
-    }
-
-    .admin-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .admin-btn-primary {
-      background: var(--gradient-primary);
-      color: white;
-    }
-
-    .admin-btn-success {
-      background: var(--gradient-success);
-      color: white;
-    }
-
-    .admin-btn-warning {
-      background: var(--gradient-warning);
-      color: white;
-    }
-
-    .admin-btn-danger {
-      background: var(--gradient-error);
-      color: white;
-    }
-
-    .admin-btn-secondary {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-    }
-
-    /* =================================================================
-       FORM CONTROLS
-       ================================================================= */
-
-    .admin-form-group {
-      display: flex;
       gap: 1rem;
       align-items: center;
-      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
     }
 
-    .admin-input,
-    .admin-select {
-      padding: 0.875rem 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      font-size: 0.875rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      min-width: 200px;
+    .table-wrap {
+      overflow-x: auto;
     }
 
-    .admin-input:focus,
-    .admin-select:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-      background: var(--bg-secondary);
-    }
-
-    .admin-input::placeholder {
-      color: var(--text-muted);
-    }
-
-    /* =================================================================
-       CHART CONTAINER
-       ================================================================= */
-
-    .chart-container {
-      background: var(--bg-secondary);
-      border-radius: 16px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-    }
-
-    .chart-header {
-      margin-bottom: 2rem;
-    }
-
-    .chart-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .chart-subtitle {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-    }
-
-    /* =================================================================
-       DATA TABLE
-       ================================================================= */
-
-    .admin-table-container {
-      background: var(--bg-secondary);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
-      margin-bottom: 2rem;
-    }
-
-    .admin-table {
+    table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 720px;
     }
 
-    .admin-table thead {
-      background: var(--bg-tertiary);
-    }
-
-    .admin-table th {
-      padding: 1.25rem 1rem;
+    th,
+    td {
+      padding: 0.72rem;
+      border-bottom: 1px solid var(--border);
       text-align: left;
-      font-weight: 700;
-      font-size: 0.875rem;
-      color: var(--text-primary);
+      font-size: 0.92rem;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.78rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border-color);
+      letter-spacing: 0.04em;
+      background: var(--soft);
     }
 
-    .admin-table td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .admin-table tbody tr {
-      transition: background-color 0.2s ease;
-    }
-
-    .admin-table tbody tr:hover {
-      background: var(--bg-tertiary);
-    }
-
-    .admin-table tbody tr:nth-child(even) {
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    .dark .admin-table tbody tr:nth-child(even) {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    /* =================================================================
-       STATUS BADGES
-       ================================================================= */
-
-    .status-badge {
-      padding: 0.375rem 0.875rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .status {
       display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .status-success {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--success-color);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    .status-warning {
-      background: rgba(245, 158, 11, 0.1);
-      color: var(--warning-color);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-    }
-
-    .status-error {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--error-color);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-
-    .status-info {
-      background: rgba(59, 130, 246, 0.1);
-      color: var(--info-color);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-    }
-
-    /* =================================================================
-       PAGINATION
-       ================================================================= */
-
-    .pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem;
-      background: var(--bg-secondary);
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .pagination-info {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .pagination-controls {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .pagination-btn {
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-
-    .pagination-btn:hover:not(:disabled) {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-      transform: translateY(-1px);
-    }
-
-    .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* =================================================================
-       DARK MODE TOGGLE
-       ================================================================= */
-
-    .dark-mode-toggle {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      width: 3.5rem;
-      height: 3.5rem;
-      border-radius: 50%;
-      background: var(--gradient-primary);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 1.25rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-lg);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .dark-mode-toggle:hover {
-      transform: scale(1.1) rotate(180deg);
-      box-shadow: var(--shadow-xl);
-    }
-
-    /* =================================================================
-       ANIMATIONS & TRANSITIONS
-       ================================================================= */
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes slideInRight {
-      from {
-        opacity: 0;
-        transform: translateX(100%);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.5;
-      }
-    }
-
-    .fade-in-up {
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    .slide-in-right {
-      animation: slideInRight 0.3s ease-out;
-    }
-
-    .pulse {
-      animation: pulse 2s infinite;
-    }
-
-    /* =================================================================
-       RESPONSIVE DESIGN
-       ================================================================= */
-
-    @media (max-width: 1024px) {
-      .dashboard-container {
-        padding: 1.5rem;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-      }
-
-      .control-actions {
-        width: 100%;
-        justify-content: flex-start;
-      }
-
-      .dashboard-title {
-        font-size: 2rem;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .dashboard-container {
-        padding: 1rem;
-      }
-
-      .dashboard-header {
-        padding: 1.5rem;
-        text-align: center;
-      }
-
-      .dashboard-header-content {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .dashboard-title {
-        font-size: 1.75rem;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .control-header {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .control-actions {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .admin-btn {
-        justify-content: center;
-      }
-
-      .admin-table-container {
-        overflow-x: auto;
-      }
-
-      .admin-table {
-        min-width: 600px;
-      }
-
-      .pagination {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-      }
-
-      .dark-mode-toggle {
-        bottom: 1rem;
-        right: 1rem;
-        width: 3rem;
-        height: 3rem;
-        font-size: 1rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .dashboard-header {
-        padding: 1rem;
-      }
-
-      .dashboard-title {
-        font-size: 1.5rem;
-      }
-
-      .stat-card {
-        padding: 1.5rem;
-      }
-
-      .stat-value {
-        font-size: 2rem;
-      }
-
-      .control-panel {
-        padding: 1.5rem;
-      }
-
-      .admin-btn {
-        padding: 0.625rem 1.25rem;
-        font-size: 0.8rem;
-      }
-
-      .chart-container {
-        padding: 1.5rem;
-      }
-    }
-
-    /* =================================================================
-       UTILITY CLASSES
-       ================================================================= */
-
-    .text-truncate {
-      overflow: hidden;
-      text-overflow: ellipsis;
+      border-radius: 999px;
+      padding: 0.18rem 0.58rem;
+      color: #ffffff;
+      background: var(--warning);
+      font-size: 0.76rem;
+      font-weight: 900;
       white-space: nowrap;
     }
 
-    .visually-hidden {
-      position: absolute !important;
-      width: 1px !important;
-      height: 1px !important;
-      padding: 0 !important;
-      margin: -1px !important;
-      overflow: hidden !important;
-      clip: rect(0, 0, 0, 0) !important;
-      white-space: nowrap !important;
-      border: 0 !important;
+    .status.completed,
+    .status.delivered {
+      background: var(--success);
     }
 
-    .loading-spinner {
-      width: 2rem;
-      height: 2rem;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top: 2px solid var(--primary-color);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .status.failed,
+    .status.cancelled {
+      background: var(--danger);
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .filters,
+    form.inline-form {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      align-items: end;
     }
 
-    /* =================================================================
-       PRINT STYLES
-       ================================================================= */
+    label {
+      display: grid;
+      gap: 0.25rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
 
-    @media print {
-      .admin-btn,
-      .control-panel,
-      .dark-mode-toggle,
-      .pagination,
-      button {
-        display: none !important;
+    select,
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.62rem 0.7rem;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .empty,
+    .notice,
+    .error {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      background: var(--soft);
+      color: var(--muted);
+    }
+
+    .error {
+      border-color: rgba(220, 38, 38, 0.25);
+      color: var(--danger);
+    }
+
+    .mini-chart {
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 44px;
+      gap: 0.65rem;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      display: block;
+      height: 100%;
+      background: var(--primary);
+      border-radius: 999px;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        grid-template-columns: 1fr;
       }
 
-      .admin-table-container {
-        box-shadow: none !important;
-        border: 1px solid #000 !important;
+      aside {
+        position: static;
+        height: auto;
       }
 
-      .admin-table th {
-        background: #f0f0f0 !important;
-        color: #000 !important;
+      .tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      body {
-        background: white !important;
-        color: black !important;
+      .stat-grid,
+      .grid-2,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      header,
+      .card-header {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .dashboard-title {
-        color: black !important;
-        -webkit-text-fill-color: black !important;
+      .tabs {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <strong>NEXA East Hub</strong>
+        <span>Operations Admin</span>
+      </div>
+      <nav class="tabs" aria-label="Admin sections">
+        <button class="tab-button active" data-tab="overview">Overview</button>
+        <button class="tab-button" data-tab="users">Users</button>
+        <button class="tab-button" data-tab="orders">Orders / Services</button>
+        <button class="tab-button" data-tab="deliveries">Deliveries / Uploads</button>
+        <button class="tab-button" data-tab="payments">Payments</button>
+        <button class="tab-button" data-tab="feedback">Feedback</button>
+        <button class="tab-button" data-tab="logs">Logs / Security</button>
+        <button class="tab-button" data-tab="settings">Settings</button>
+      </nav>
+    </aside>
 
-<body class="admin-dashboard transition-colors duration-500">
-  <div class="dashboard-container">
-    <!-- Dashboard Header -->
-    <div class="dashboard-header fade-in-up">
-      <div class="dashboard-header-content">
+    <main>
+      <header>
         <div>
-          <h1 class="dashboard-title">Admin Dashboard</h1>
-          <p class="dashboard-subtitle">NEXA East Hub - Monitor user activity and system performance</p>
+          <h1>Admin Operations</h1>
+          <p class="muted">Manage users, orders, deliveries, payments, feedback, and security events.</p>
         </div>
-        <div class="dashboard-controls">
-          <div class="admin-info">
-            <div class="admin-avatar">A</div>
-            <span id="adminInfo">Administrator</span>
+        <div class="actions">
+          <a href="/" class="button">Home</a>
+          <button id="refreshBtn" class="primary" type="button">Refresh</button>
+          <button id="logoutBtn" type="button">Logout</button>
+        </div>
+      </header>
+
+      <div id="stateMessage" class="notice">Loading operations data...</div>
+
+      <section id="overview" class="panel active">
+        <div class="stat-grid">
+          <article class="stat"><span>Total Users</span><strong id="statUsers">0</strong></article>
+          <article class="stat"><span>Active Orders</span><strong id="statActiveOrders">0</strong></article>
+          <article class="stat"><span>Pending Deliveries</span><strong id="statPendingDeliveries">0</strong></article>
+          <article class="stat"><span>Completed Orders</span><strong id="statCompletedOrders">0</strong></article>
+          <article class="stat"><span>Contact Messages</span><strong id="statContactMessages">0</strong></article>
+          <article class="stat"><span>Failed Logins</span><strong id="statFailedLogins">0</strong></article>
+        </div>
+        <div class="grid-2">
+          <article class="card">
+            <div class="card-header"><h2>Orders by Status</h2></div>
+            <div id="ordersChart" class="mini-chart"></div>
+          </article>
+          <article class="card">
+            <div class="card-header"><h2>Weekly Service Requests</h2></div>
+            <div id="requestsChart" class="mini-chart"></div>
+          </article>
+          <article class="card">
+            <div class="card-header"><h2>Deliveries Completed</h2></div>
+            <div id="deliveriesChart" class="mini-chart"></div>
+          </article>
+          <article class="card">
+            <div class="card-header"><h2>User Growth</h2></div>
+            <div id="userGrowthChart" class="mini-chart"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="users" class="panel">
+        <article class="card">
+          <div class="card-header">
+            <h2>User Management</h2>
+            <input id="userSearch" type="search" placeholder="Search users..." />
           </div>
-          <button id="darkModeToggle" class="admin-btn admin-btn-secondary" type="button">
-            🌙
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Connection Status -->
-    <div id="connectionStatus" class="connection-status">
-      <span id="statusText">Connected</span>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-grid fade-in-up">
-      <div class="stat-card">
-        <div class="stat-header">
-          <div>
-            <h3 class="stat-title">Total Logs</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Orders</th>
+                  <th>Last Activity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
           </div>
-          <div class="stat-icon">📊</div>
-        </div>
-        <p id="totalLogs" class="stat-value">0</p>
-        <div class="stat-change positive">+12% from last week</div>
-      </div>
-      
-      <div class="stat-card success">
-        <div class="stat-header">
-          <div>
-            <h3 class="stat-title">Successful Logins</h3>
+        </article>
+      </section>
+
+      <section id="orders" class="panel">
+        <article class="card">
+          <div class="card-header">
+            <h2>Orders / Services</h2>
+            <div class="filters">
+              <select id="orderStatusFilter">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="ready">Ready</option>
+                <option value="ready-for-download">Ready for Download</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+              </select>
+              <select id="orderUserFilter"></select>
+            </div>
           </div>
-          <div class="stat-icon">✅</div>
-        </div>
-        <p id="successfulLogins" class="stat-value">0</p>
-        <div class="stat-change positive">+8% success rate</div>
-      </div>
-      
-      <div class="stat-card error">
-        <div class="stat-header">
-          <div>
-            <h3 class="stat-title">Failed Logins</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>User</th>
+                  <th>Service</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Updated</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTable"></tbody>
+            </table>
           </div>
-          <div class="stat-icon">❌</div>
-        </div>
-        <p id="failedLogins" class="stat-value">0</p>
-        <div class="stat-change negative">-5% from yesterday</div>
-      </div>
-      
-      <div class="stat-card warning">
-        <div class="stat-header">
-          <div>
-            <h3 class="stat-title">Contact Messages</h3>
+        </article>
+      </section>
+
+      <section id="deliveries" class="panel">
+        <article class="card">
+          <div class="card-header"><h2>Deliveries / Uploads</h2></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Order</th>
+                  <th>File</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Date Added</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="deliveriesTable"></tbody>
+            </table>
           </div>
-          <div class="stat-icon">💬</div>
-        </div>
-        <p id="contactMessages" class="stat-value">0</p>
-        <div class="stat-change positive">+3 new messages</div>
-      </div>
-    </div>
+        </article>
+      </section>
 
-    <!-- Control Panel -->
-    <div class="control-panel fade-in-up">
-      <div class="control-header">
-        <h2 class="control-title">System Controls</h2>
-        <div class="control-actions">
-          <div class="admin-form-group">
-            <select id="filterType" class="admin-select" title="Filter log type">
-              <option value="all">All Events</option>
-              <option value="login_success">Login Success</option>
-              <option value="login_failed">Login Failed</option>
-              <option value="signup_success">Sign Up Success</option>
-              <option value="signup_failed">Sign Up Failed</option>
-              <option value="contact_message">Contact Message</option>
-              <option value="admin_reset">Admin Reset</option>
-              <option value="forgot_password_request">Password Reset Request</option>
-            </select>
-            <input id="searchInput" type="search" placeholder="Search logs..." class="admin-input" />
+      <section id="payments" class="panel">
+        <article class="card">
+          <div class="card-header"><h2>Payments</h2></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>User</th>
+                  <th>Status</th>
+                  <th>Payment Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTable"></tbody>
+            </table>
           </div>
-          <button id="refreshBtn" type="button" class="admin-btn admin-btn-primary">
-            🔄 Refresh
-          </button>
-          <button id="exportCSVBtn" type="button" class="admin-btn admin-btn-success">
-            📊 Export CSV
-          </button>
-          <button id="exportXLSXBtn" type="button" class="admin-btn admin-btn-success">
-            📈 Export Excel
-          </button>
-          <button id="exportPDFBtn" type="button" class="admin-btn admin-btn-danger">
-            📄 Export PDF
-          </button>
-          <button id="deleteOldEventsBtn" type="button" class="admin-btn admin-btn-warning">
-            🗑️ Delete Old Events
-          </button>
+        </article>
+      </section>
+
+      <section id="feedback" class="panel">
+        <article class="card">
+          <div class="card-header"><h2>Feedback</h2></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Feedback</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="feedbackTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section id="logs" class="panel">
+        <div class="stat-grid">
+          <article class="stat"><span>Total Logs</span><strong id="logTotal">0</strong></article>
+          <article class="stat"><span>Successful Logins</span><strong id="logSuccess">0</strong></article>
+          <article class="stat"><span>Failed Logins</span><strong id="logFailed">0</strong></article>
+          <article class="stat"><span>Security Events</span><strong id="logSecurity">0</strong></article>
+          <article class="stat"><span>Contact Messages</span><strong id="logContacts">0</strong></article>
+          <article class="stat"><span>Weekly Activity</span><strong id="logWeekly">0</strong></article>
         </div>
-      </div>
-    </div>
+        <article class="card">
+          <div class="card-header">
+            <h2>Raw Logs</h2>
+            <input id="logSearch" type="search" placeholder="Search logs..." />
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Event</th>
+                  <th>User</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="logsTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
 
-    <!-- Activity Chart -->
-    <div class="chart-container fade-in-up">
-      <div class="chart-header">
-        <h3 class="chart-title">Activity Overview</h3>
-        <p class="chart-subtitle">Real-time system activity and user engagement metrics</p>
-      </div>
-      <canvas id="activityChart" class="w-full h-64"></canvas>
-    </div>
-
-    <!-- Data Table -->
-    <div class="admin-table-container fade-in-up">
-      <table id="logTable" class="admin-table">
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Event Type</th>
-            <th>Details</th>
-            <th>User</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="logTableBody">
-          <!-- Sample Data -->
-          <tr>
-            <td>2025-01-30 14:32:15</td>
-            <td>Login Success</td>
-            <td>User successfully authenticated</td>
-            <td>john.doe@example.com</td>
-            <td><span class="status-badge status-success">Success</span></td>
-          </tr>
-          <tr>
-            <td>2025-01-30 14:28:42</td>
-            <td>Login Failed</td>
-            <td>Invalid password attempt</td>
-            <td>admin@nexahub.com</td>
-            <td><span class="status-badge status-error">Failed</span></td>
-          </tr>
-          <tr>
-            <td>2025-01-30 14:25:18</td>
-            <td>Contact Message</td>
-            <td>New inquiry received</td>
-            <td>customer@email.com</td>
-            <td><span class="status-badge status-info">New</span></td>
-          </tr>
-          <tr>
-            <td>2025-01-30 14:20:33</td>
-            <td>Sign Up Success</td>
-            <td>New user registration completed</td>
-            <td>newuser@example.com</td>
-            <td><span class="status-badge status-success">Success</span></td>
-          </tr>
-          <tr>
-            <td>2025-01-30 14:15:07</td>
-            <td>Password Reset</td>
-            <td>Password reset request initiated</td>
-            <td>user@domain.com</td>
-            <td><span class="status-badge status-warning">Pending</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pagination fade-in-up">
-      <div class="pagination-info">
-        <span id="pageInfo">Showing 1-5 of 25 entries</span>
-      </div>
-      <div class="pagination-controls">
-        <button id="prevPageBtn" type="button" class="pagination-btn" disabled>
-          ← Previous
-        </button>
-        <button class="pagination-btn" style="background: var(--primary-color); color: white;">1</button>
-        <button class="pagination-btn">2</button>
-        <button class="pagination-btn">3</button>
-        <button id="nextPageBtn" type="button" class="pagination-btn">
-          Next →
-        </button>
-      </div>
-    </div>
-
-    <!-- Logout Button -->
-    <div class="text-center mt-8">
-      <button id="logoutBtn" type="button" class="admin-btn admin-btn-danger">
-        🚪 Logout
-      </button>
-    </div>
+      <section id="settings" class="panel">
+        <article class="card">
+          <div class="card-header"><h2>Settings</h2></div>
+          <p class="muted">Operational settings are intentionally conservative. Environment variables, SMTP credentials, Cloudflare Tunnel, and PM2 settings remain server-managed.</p>
+        </article>
+      </section>
+    </main>
   </div>
 
-  <!-- Dark Mode Toggle (Fixed Position) -->
-  <button id="darkModeToggleFixed" class="dark-mode-toggle" type="button" title="Toggle Dark Mode">
-    🌙
-  </button>
-
-  <!-- JavaScript -->
-   <script src="script.js"></script>
-
   <script>
-  
-  
-    // Socket.IO connection
-    const socket = io();
-    socket.on('new_log', (data) => {
-      console.log('📥 New log received:', data);
-    });
+    const token = localStorage.getItem('adminToken') || '';
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    let state = { users: [], orders: [], requests: [], deliveries: [], uploads: [], feedback: [], logs: [], metrics: {} };
 
-    // DOM Elements
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const darkModeToggleFixed = document.getElementById('darkModeToggleFixed');
-    const connectionStatus = document.getElementById('connectionStatus');
-    const statusText = document.getElementById('statusText');
-    const body = document.body;
+    const $ = id => document.getElementById(id);
 
-    // Sample data for demonstration
-    let currentPage = 1;
-    const itemsPerPage = 5;
-    let totalLogs = 142;
-    let successfulLogins = 128;
-    let failedLogins = 14;
-    let contactMessages = 23;
-
-    // Initialize dashboard
-    function initDashboard() {
-      updateStats();
-      initChart();
-      setupEventListeners();
-      checkDarkMode();
-      showConnectionStatus('connected');
+    function fmtDate(value) {
+      if (!value) return 'Not recorded';
+      return new Date(value).toLocaleString();
     }
 
-    // Update statistics
-    function updateStats() {
-      document.getElementById('totalLogs').textContent = totalLogs;
-      document.getElementById('successfulLogins').textContent = successfulLogins;
-      document.getElementById('failedLogins').textContent = failedLogins;
-      document.getElementById('contactMessages').textContent = contactMessages;
+    function status(value) {
+      const normalized = String(value || 'pending').toLowerCase();
+      return `<span class="status ${normalized}">${normalized}</span>`;
     }
 
-    // Initialize activity chart
-    function initChart() {
-      const ctx = document.getElementById('activityChart').getContext('2d');
-      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-      gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
-      gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
-
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          datasets: [{
-            label: 'User Activity',
-            data: [12, 19, 8, 15, 22, 18, 25],
-            borderColor: '#2563eb',
-            backgroundColor: gradient,
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#2563eb',
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.1)'
-              }
-            },
-            x: {
-              grid: {
-                color: 'rgba(0, 0, 0, 0.1)'
-              }
-            }
-          }
-        }
-      });
+    function emptyRow(columns, text) {
+      return `<tr><td colspan="${columns}"><div class="empty">${text}</div></td></tr>`;
     }
 
-    // Setup event listeners
-    function setupEventListeners() {
-      // Dark mode toggles
-      [darkModeToggle, darkModeToggleFixed].forEach(btn => {
-        btn.addEventListener('click', toggleDarkMode);
-      });
-
-      // Filter and search
-      document.getElementById('filterType').addEventListener('change', filterLogs);
-      document.getElementById('searchInput').addEventListener('input', searchLogs);
-
-      // Export buttons
-      document.getElementById('exportCSVBtn').addEventListener('click', exportCSV);
-      document.getElementById('exportXLSXBtn').addEventListener('click', exportXLSX);
-      document.getElementById('exportPDFBtn').addEventListener('click', exportPDF);
-
-      // Action buttons
-      document.getElementById('refreshBtn').addEventListener('click', refreshData);
-      document.getElementById('deleteOldEventsBtn').addEventListener('click', deleteOldEvents);
-      document.getElementById('logoutBtn').addEventListener('click', logout);
-
-      // Pagination
-      document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
-      document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
+    function userLabel(emailOrId) {
+      const found = state.users.find(user => String(user.email).toLowerCase() === String(emailOrId).toLowerCase() || String(user.id) === String(emailOrId));
+      return found ? `${found.name || 'Client'}<br><span class="muted">${found.email}</span>` : (emailOrId || 'Unknown');
     }
 
-    // Dark mode functionality
-    function toggleDarkMode() {
-      body.classList.toggle('dark');
-      const isDark = body.classList.contains('dark');
-      localStorage.setItem('darkMode', isDark);
-      
-      // Update toggle icons
-      const icon = isDark ? '☀️' : '🌙';
-      darkModeToggle.textContent = icon;
-      darkModeToggleFixed.textContent = icon;
+    function manageLink(userId) {
+      return `<a class="button" href="admin-user-view.html?userId=${encodeURIComponent(userId)}">View / Manage</a>`;
     }
 
-    function checkDarkMode() {
-      const isDark = localStorage.getItem('darkMode') === 'true';
-      if (isDark) {
-        body.classList.add('dark');
-        darkModeToggle.textContent = '☀️';
-        darkModeToggleFixed.textContent = '☀️';
+    function setStateMessage(message = '', type = 'notice') {
+      const box = $('stateMessage');
+      box.textContent = message;
+      box.className = type;
+      box.style.display = message ? 'block' : 'none';
+    }
+
+    async function loadOperations() {
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
       }
-    }
 
-    // Connection status
-    function showConnectionStatus(status) {
-      connectionStatus.className = `connection-status ${status} show`;
-      
-      const statusMessages = {
-        connected: '✅ Connected',
-        disconnected: '❌ Disconnected',
-        connecting: '🔄 Connecting...'
-      };
-      
-      statusText.textContent = statusMessages[status] || status;
-      
-      setTimeout(() => {
-        connectionStatus.classList.remove('show');
-      }, 3000);
-    }
-
-    // Filter and search functions
-    function filterLogs() {
-      const filterType = document.getElementById('filterType').value;
-      console.log('Filtering by:', filterType);
-      // Implement filtering logic
-    }
-
-    function searchLogs() {
-      const searchTerm = document.getElementById('searchInput').value;
-      console.log('Searching for:', searchTerm);
-      // Implement search logic
-    }
-
-    // Export functions
-    function exportCSV() {
-      console.log('Exporting CSV...');
-      showNotification('CSV export started', 'success');
-    }
-
-    function exportXLSX() {
-      console.log('Exporting Excel...');
-      showNotification('Excel export started', 'success');
-    }
-
-    function exportPDF() {
-      console.log('Exporting PDF...');
-      showNotification('PDF export started', 'success');
-    }
-
-    // Action functions
-    function refreshData() {
-      console.log('Refreshing data...');
-      showNotification('Data refreshed successfully', 'success');
-      
-      // Simulate data update
-      totalLogs += Math.floor(Math.random() * 5);
-      successfulLogins += Math.floor(Math.random() * 3);
-      updateStats();
-    }
-
-    function deleteOldEvents() {
-      if (confirm('Are you sure you want to delete old events? This action cannot be undone.')) {
-        console.log('Deleting old events...');
-        showNotification('Old events deleted', 'warning');
+      setStateMessage('Loading operations data...');
+      const response = await fetch('/api/admin/operations', { headers });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setStateMessage(data.error || 'Unable to load admin operations.', 'error');
+        return;
       }
+      state = data;
+      setStateMessage('');
+      renderAll();
     }
 
-    function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        console.log('Logging out...');
-        showNotification('Logging out...', 'info');
-        // Implement logout logic
+    function renderAll() {
+      renderOverview();
+      renderUsers();
+      renderOrders();
+      renderDeliveries();
+      renderPayments();
+      renderFeedback();
+      renderLogs();
+      populateFilters();
+    }
+
+    function renderOverview() {
+      const metrics = state.metrics || {};
+      $('statUsers').textContent = metrics.totalUsers || 0;
+      $('statActiveOrders').textContent = metrics.activeOrders || 0;
+      $('statPendingDeliveries').textContent = metrics.pendingDeliveries || 0;
+      $('statCompletedOrders').textContent = metrics.completedOrders || 0;
+      $('statContactMessages').textContent = metrics.serviceRequests || 0;
+      $('statFailedLogins').textContent = metrics.failedLogins || 0;
+
+      renderBarChart('ordersChart', summarize(state.orders, 'status'), 'No order status data yet.');
+      renderBarChart('requestsChart', weeklySummary(state.requests, 'timestamp'), 'No weekly service request data yet.');
+      renderBarChart('deliveriesChart', summarize(state.deliveries, 'status'), 'No delivery data yet.');
+      renderBarChart('userGrowthChart', weeklySummary(state.users, 'createdAt'), 'No user growth data yet.');
+    }
+
+    function summarize(items = [], key) {
+      return items.reduce((acc, item) => {
+        const label = item[key] || 'unknown';
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
+    function weeklySummary(items = [], dateKey) {
+      return items.reduce((acc, item) => {
+        const date = item[dateKey] ? new Date(item[dateKey]) : null;
+        if (!date || Number.isNaN(date.getTime())) return acc;
+        const label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
+    function renderBarChart(id, values, emptyText) {
+      const entries = Object.entries(values);
+      if (!entries.length) {
+        $(id).innerHTML = `<div class="empty">${emptyText}</div>`;
+        return;
       }
+      const max = Math.max(...entries.map(([, value]) => value), 1);
+      $(id).innerHTML = entries.map(([label, value]) => `
+        <div class="bar-row">
+          <span>${label}</span>
+          <div class="bar-track"><span class="bar-fill" style="width:${Math.max(8, (value / max) * 100)}%"></span></div>
+          <strong>${value}</strong>
+        </div>
+      `).join('');
     }
 
-    // Pagination
-    function changePage(direction) {
-      const totalPages = Math.ceil(totalLogs / itemsPerPage);
-      currentPage += direction;
-      
-      if (currentPage < 1) currentPage = 1;
-      if (currentPage > totalPages) currentPage = totalPages;
-      
-      updatePagination();
+    function renderUsers() {
+      const query = ($('userSearch')?.value || '').toLowerCase();
+      const users = (state.users || []).filter(user => `${user.name} ${user.email}`.toLowerCase().includes(query));
+      $('usersTable').innerHTML = users.length ? users.map(user => `
+        <tr>
+          <td>${user.name || 'Client'}</td>
+          <td>${user.email}</td>
+          <td>${user.role || 'user'}</td>
+          <td>${status(user.isActive === false ? 'disabled' : 'active')}</td>
+          <td>${user.ordersCount || 0}</td>
+          <td>${fmtDate(user.lastActivity)}</td>
+          <td>${manageLink(user.id || user.email)}</td>
+        </tr>
+      `).join('') : emptyRow(7, 'No users found.');
     }
 
-    function updatePagination() {
-      const totalPages = Math.ceil(totalLogs / itemsPerPage);
-      const startItem = (currentPage - 1) * itemsPerPage + 1;
-      const endItem = Math.min(currentPage * itemsPerPage, totalLogs);
-      
-      document.getElementById('pageInfo').textContent = 
-        `Showing ${startItem}-${endItem} of ${totalLogs} entries`;
-      
-      document.getElementById('prevPageBtn').disabled = currentPage === 1;
-      document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+    function populateFilters() {
+      const select = $('orderUserFilter');
+      const current = select.value;
+      select.innerHTML = '<option value="">All users</option>' + (state.users || []).map(user => `<option value="${user.email}">${user.name || user.email}</option>`).join('');
+      select.value = current;
     }
 
-    // Notification system
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.className = `notification notification-${type} slide-in-right`;
-      notification.textContent = message;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
-    }
-
-    // Socket.IO event listeners
-    socket.on('connect', () => {
-      showConnectionStatus('connected');
-    });
-
-    socket.on('disconnect', () => {
-      showConnectionStatus('disconnected');
-    });
-
-    socket.on('new_log', (data) => {
-      console.log('📥 New log received:', data);
-      totalLogs++;
-      updateStats();
-      showNotification('New activity detected', 'info');
-    });
-
-    // Initialize dashboard on page load
-    document.addEventListener('DOMContentLoaded', initDashboard);
-
-    // Add fade-in animation to elements
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
+    function renderOrders() {
+      const statusFilter = $('orderStatusFilter')?.value || '';
+      const userFilter = $('orderUserFilter')?.value || '';
+      const orders = (state.orders || []).filter(order => {
+        const statusMatch = !statusFilter || order.status === statusFilter;
+        const userMatch = !userFilter || String(order.userEmail || '').toLowerCase() === userFilter.toLowerCase();
+        return statusMatch && userMatch;
       });
-    }, observerOptions);
+      $('ordersTable').innerHTML = orders.length ? orders.map(order => `
+        <tr>
+          <td>${order.title || order.service || order.id}</td>
+          <td>${userLabel(order.userEmail || order.email || order.userId)}</td>
+          <td>${order.service || 'General'}</td>
+          <td>${status(order.status)}</td>
+          <td>${status(order.paymentStatus || 'pending')}</td>
+          <td>${fmtDate(order.updatedAt || order.createdAt)}</td>
+          <td>${manageLink(order.userId || order.userEmail || order.email)}</td>
+        </tr>
+      `).join('') : emptyRow(7, 'No orders yet. Create orders from a user management page.');
+    }
 
-    // Observe all fade-in-up elements
-    document.querySelectorAll('.fade-in-up').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(30px)';
-      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      observer.observe(el);
+    function renderDeliveries() {
+      const rows = (state.deliveries || []).map(delivery => `
+        <tr>
+          <td>${userLabel(delivery.userEmail || delivery.userId)}</td>
+          <td>${delivery.orderId || 'General'}</td>
+          <td><a href="${delivery.fileUrl}" target="_blank" rel="noopener">${delivery.fileName}</a></td>
+          <td>${delivery.type || 'other'}</td>
+          <td>${status(delivery.status || 'available')}</td>
+          <td>${fmtDate(delivery.createdAt)}</td>
+          <td>${manageLink(delivery.userId || delivery.userEmail)}</td>
+        </tr>
+      `);
+      $('deliveriesTable').innerHTML = rows.length ? rows.join('') : emptyRow(7, 'No URL-based deliveries have been added yet.');
+    }
+
+    function renderPayments() {
+      $('paymentsTable').innerHTML = (state.orders || []).length ? state.orders.map(order => `
+        <tr>
+          <td>${order.title || order.service || order.id}</td>
+          <td>${userLabel(order.userEmail || order.userId)}</td>
+          <td>${status(order.status)}</td>
+          <td>${status(order.paymentStatus || 'pending')}</td>
+          <td>${manageLink(order.userId || order.userEmail)}</td>
+        </tr>
+      `).join('') : emptyRow(5, 'Payment tracking will appear as orders are created.');
+    }
+
+    function renderFeedback() {
+      $('feedbackTable').innerHTML = (state.feedback || []).length ? state.feedback.map(item => `
+        <tr>
+          <td>${userLabel(item.userEmail || item.email)}</td>
+          <td>${item.feedback}</td>
+          <td>${status(item.status || 'pending-review')}</td>
+          <td>${fmtDate(item.submittedAt || item.createdAt)}</td>
+        </tr>
+      `).join('') : emptyRow(4, 'No client feedback yet.');
+    }
+
+    function renderLogs() {
+      const query = ($('logSearch')?.value || '').toLowerCase();
+      const logs = (state.logs || []).filter(log => `${log.eventType} ${log.user} ${log.details}`.toLowerCase().includes(query));
+      $('logTotal').textContent = state.logs?.length || 0;
+      $('logSuccess').textContent = state.metrics?.successfulLogins || 0;
+      $('logFailed').textContent = state.metrics?.failedLogins || 0;
+      $('logSecurity').textContent = (state.logs || []).filter(log => String(log.eventType || '').includes('login') || String(log.eventType || '').includes('password')).length;
+      $('logContacts').textContent = state.metrics?.serviceRequests || 0;
+      $('logWeekly').textContent = state.metrics?.weeklyActivity || 0;
+      $('logsTable').innerHTML = logs.length ? logs.slice(0, 80).map(log => `
+        <tr>
+          <td>${fmtDate(log.timestamp)}</td>
+          <td>${log.eventType || 'event'}</td>
+          <td>${log.user || 'anonymous'}</td>
+          <td>${log.details || ''}</td>
+        </tr>
+      `).join('') : emptyRow(4, 'No logs match this search.');
+    }
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+        button.classList.add('active');
+        $(button.dataset.tab).classList.add('active');
+      });
     });
+
+    $('refreshBtn').addEventListener('click', loadOperations);
+    $('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+      window.location.href = '/';
+    });
+    $('userSearch').addEventListener('input', renderUsers);
+    $('orderStatusFilter').addEventListener('change', renderOrders);
+    $('orderUserFilter').addEventListener('change', renderOrders);
+    $('logSearch').addEventListener('input', renderLogs);
+
+    if (typeof io === 'function') {
+      const socket = io();
+      socket.on('new_log', () => loadOperations());
+    }
+
+    loadOperations();
   </script>
-
-  <noscript>
-    <div style="color: red; text-align: center; margin: 20px; padding: 20px; background: #fee; border: 1px solid #fcc; border-radius: 8px;">
-      JavaScript is required for the Admin Dashboard to function properly. Please enable JavaScript in your browser.
-    </div>
-  </noscript>
 </body>
 </html>

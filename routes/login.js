@@ -1,22 +1,40 @@
+import 'dotenv/config';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
 import nodemailer from 'nodemailer';  // added
-import dotenv from 'dotenv';
 
-dotenv.config();
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret_key_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'development-only-jwt-secret-change-me';
+const emailEnabled = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'pikelelalikho@gmail.com',
+function getEmailTransportConfig() {
+    const auth = {
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    };
+
+    if (process.env.EMAIL_HOST) {
+        const port = Number(process.env.EMAIL_PORT) || 587;
+        return {
+            host: process.env.EMAIL_HOST,
+            port,
+            secure: process.env.EMAIL_SECURE === 'true' || port === 465,
+            auth
+        };
     }
-});
+
+    return {
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth
+    };
+}
+
+const transporter = emailEnabled
+    ? nodemailer.createTransport(getEmailTransportConfig())
+    : null;
 
 function readUsers() {
     if (!fs.existsSync('users.json')) return [];

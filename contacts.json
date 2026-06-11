@@ -34,5 +34,16 @@
     "service": "Design Service",
     "message": "i want a website",
     "timestamp": "2025-07-28T13:12:23.784Z"
+  },
+  {
+    "id": 1781142390411,
+    "userId": 1753792599356,
+    "userEmail": "lilpikelela@gmail.com",
+    "name": "Lil Pikelela",
+    "email": "lilpikelela@gmail.com",
+    "service": "IT Support & Computer Services",
+    "message": "Please organize a hard drive for me, or an SSD must be 500GB. I will collect it when I come to record at the studio",
+    "status": "new",
+    "timestamp": "2026-06-11T01:46:30.411Z"
   }
 ]

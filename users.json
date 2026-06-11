@@ -1,13 +1,13 @@
 [
   {
     "id": 1753796242938,
-    "name": "Nexa Admin",
+    "name": "Likho Pikelela",
     "email": "pikelelalikho@gmail.com",
-    "password": "$2b$12$E8VviRPdE5YiunUo3PdgpuMU8Xvuhq0f4i6PezfsMHVqM46aBZobK",
+    "password": "$2b$12$qdgvosgKM341gvtRYekgbeToKIawDpfVGtgtVLTx/GPijDtNEZOhS",
     "role": "admin",
     "createdAt": "2025-07-29T13:37:22.938Z",
     "isActive": true,
-    "updatedAt": "2025-08-28T11:12:20.936Z"
+    "updatedAt": "2026-06-11T02:12:29.302Z"
   },
   {
     "id": 1751632494661,
